@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "Better Links"
+  },
+  "extDescription": {
+    "message": "Abre, copia o corrige enlaces seleccionados y clics en anclas desde un tooltip."
+  }
+}

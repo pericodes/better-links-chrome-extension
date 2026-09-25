@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Better Links</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1 id="title">Better Links</h1>
+
+      <section>
+        <h2 id="label-section-text"></h2>
+        <label class="check">
+          <input id="show-tooltip" type="checkbox" />
+          <span id="label-show-tooltip"></span>
+        </label>
+        <div class="field">
+          <label id="label-click1" for="click1"></label>
+          <select id="click1"></select>
+        </div>
+        <div class="field">
+          <label id="label-click2" for="click2"></label>
+          <select id="click2"></select>
+        </div>
+        <div class="field">
+          <label id="label-click3" for="click3"></label>
+          <select id="click3"></select>
+        </div>
+      </section>
+
+      <section>
+        <h2 id="label-section-anchor"></h2>
+        <label class="check">
+          <input id="show-anchor-tooltip" type="checkbox" checked />
+          <span id="label-show-anchor-tooltip"></span>
+        </label>
+        <div class="field">
+          <label id="label-anchor-mode" for="anchor-mode"></label>
+          <select id="anchor-mode"></select>
+        </div>
+        <div class="field">
+          <label id="label-anchor-click2" for="anchor-click2"></label>
+          <select id="anchor-click2"></select>
+        </div>
+        <div class="field">
+          <label id="label-anchor-click3" for="anchor-click3"></label>
+          <select id="anchor-click3"></select>
+        </div>
+      </section>
+
+      <section>
+        <h2 id="label-section-general"></h2>
+        <div class="field">
+          <label id="label-tooltip-delay" for="tooltip-delay"></label>
+          <input id="tooltip-delay" type="number" min="0" step="0.1" />
+        </div>
+        <p id="tooltip-delay-help" class="help"></p>
+        <label class="check">
+          <input id="fix-links" type="checkbox" />
+          <span id="label-fix-links"></span>
+        </label>
+        <p id="fix-help" class="help"></p>
+        <div class="field">
+          <label id="label-language" for="language"></label>
+          <select id="language"></select>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="save" type="button"></button>
+        <span id="saved" class="saved" hidden></span>
+      </div>
+    </main>
+    <script src="../shared/defaults.js"></script>
+    <script src="../shared/i18n.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

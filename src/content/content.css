@@ -1,0 +1,9 @@
+#better-links-root {
+  position: fixed;
+  z-index: 2147483647;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: visible;
+}
