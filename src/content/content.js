@@ -56,7 +56,7 @@
           color: #fff;
           border-radius: 8px;
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
-          pointer-events: none;
+          pointer-events: auto;
         }
         .tip[hidden], .toast[hidden] { display: none; }
         button {
@@ -69,7 +69,6 @@
           border-radius: 6px;
           cursor: pointer;
           white-space: nowrap;
-          pointer-events: auto;
         }
         button:hover, button:focus-visible { background: #1f2937; outline: none; }
         .toast {
@@ -88,9 +87,12 @@
       event.preventDefault();
       event.stopPropagation();
     });
-    tip.addEventListener("mouseenter", () => window.clearTimeout(hideTimer));
-    tip.addEventListener("mouseleave", () => {
-      if (tip.dataset.kind === "anchor") scheduleHide();
+    tip.addEventListener("mouseover", () => window.clearTimeout(hideTimer));
+    tip.addEventListener("mouseout", (event) => {
+      if (tip.dataset.kind !== "anchor") return;
+      const next = event.relatedTarget;
+      if (next && (next === tip || tip.contains(next))) return;
+      scheduleHide();
     });
     (document.documentElement || document.body).appendChild(root);
   }
@@ -171,7 +173,7 @@
 
   function scheduleHide() {
     window.clearTimeout(hideTimer);
-    hideTimer = window.setTimeout(hideTip, 180);
+    hideTimer = window.setTimeout(hideTip, 350);
   }
 
   function showCopied(rect) {
