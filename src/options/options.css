@@ -46,6 +46,15 @@ h2 {
   align-items: center;
 }
 
+.group-label {
+  margin: 0 0 8px;
+}
+
+.checks {
+  display: grid;
+  gap: 8px;
+}
+
 select, button, input {
   font: inherit;
 }

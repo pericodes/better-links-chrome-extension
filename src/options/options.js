@@ -5,10 +5,17 @@
   const textActions = [
     ["newWindow", "options.action.newWindow"],
     ["newTab", "options.action.newTab"],
+    ["newTabAndOpen", "options.action.newTabAndOpen"],
     ["copy", "options.action.copy"],
     ["none", "options.action.none"],
   ];
   const anchorActions = textActions.filter(([value]) => value !== "none");
+  const tooltipActions = [
+    ["newWindow", "tooltip.newWindow"],
+    ["newTab", "tooltip.newTab"],
+    ["newTabAndOpen", "tooltip.newTabAndOpen"],
+    ["copy", "tooltip.copy"],
+  ];
   const modes = [
     ["ignore", "options.mode.ignore"],
     ["clicks", "options.mode.clicks"],
@@ -33,6 +40,28 @@
     if ([...select.options].some((option) => option.value === current)) select.value = current;
   }
 
+  function selectedTooltipActions() {
+    return [...$("tooltip-actions").querySelectorAll("input:checked")].map((input) => input.value);
+  }
+
+  function fillTooltipActions(lang, selected) {
+    const chosen = new Set(selected);
+    const box = $("tooltip-actions");
+    box.replaceChildren();
+    for (const [value, key] of tooltipActions) {
+      const label = document.createElement("label");
+      label.className = "check";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = value;
+      input.checked = chosen.has(value);
+      const text = document.createElement("span");
+      text.textContent = BL.t(lang, key);
+      label.append(input, text);
+      box.appendChild(label);
+    }
+  }
+
   function applyLabels() {
     const lang = BL.resolveLanguage(settings.language);
     document.documentElement.lang = lang;
@@ -41,6 +70,8 @@
     $("label-section-text").textContent = BL.t(lang, "options.sectionText");
     $("label-show-tooltip").textContent = BL.t(lang, "options.showTooltip");
     $("label-show-anchor-tooltip").textContent = BL.t(lang, "options.showAnchorTooltip");
+    $("label-section-tooltip").textContent = BL.t(lang, "options.sectionTooltip");
+    $("label-tooltip-actions").textContent = BL.t(lang, "options.tooltipActions");
     $("label-tooltip-delay").textContent = BL.t(lang, "options.tooltipDelay");
     $("tooltip-delay-help").textContent = BL.t(lang, "options.tooltipDelayHelp");
     $("label-click1").textContent = BL.t(lang, "options.click1");
@@ -61,6 +92,7 @@
     fillSelect($("anchor-mode"), modes, lang);
     fillSelect($("anchor-click2"), anchorActions, lang);
     fillSelect($("anchor-click3"), anchorActions, lang);
+    fillTooltipActions(lang, settings.tooltipActions);
     fillSelect($("language"), languages, lang);
   }
 
@@ -74,7 +106,9 @@
     return BL.normalizeSettings({
       showTooltip: $("show-tooltip").checked,
       tooltipOnLinks: $("show-anchor-tooltip").checked,
+      tooltipActions: selectedTooltipActions(),
       tooltipDelay: $("tooltip-delay").value,
+      tooltipDelayInMs: true,
       click1: $("click1").value,
       click2: $("click2").value,
       click3: $("click3").value,
@@ -118,6 +152,7 @@
     const anchorMode = $("anchor-mode").value;
     const anchorClick2 = $("anchor-click2").value;
     const anchorClick3 = $("anchor-click3").value;
+    settings.tooltipActions = selectedTooltipActions();
     applyLabels();
     $("click1").value = click1;
     $("click2").value = click2;

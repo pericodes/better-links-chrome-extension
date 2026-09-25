@@ -98,12 +98,19 @@
   }
 
   function renderTipButtons() {
+    const labels = {
+      newWindow: "tooltip.newWindow",
+      newTab: "tooltip.newTab",
+      newTabAndOpen: "tooltip.newTabAndOpen",
+      copy: "tooltip.copy",
+    };
     tip.replaceChildren();
-    for (const action of ["newWindow", "newTab", "copy"]) {
+    for (const action of settings.tooltipActions) {
+      const key = labels[action];
+      if (!key) continue;
       const button = document.createElement("button");
       button.type = "button";
       button.dataset.action = action;
-      const key = action === "newWindow" ? "tooltip.newWindow" : action === "newTab" ? "tooltip.newTab" : "tooltip.copy";
       button.textContent = t(key);
       tip.appendChild(button);
     }
@@ -145,13 +152,14 @@
   }
 
   function tooltipDelayMs() {
-    const seconds = Number(settings.tooltipDelay) || 0;
-    return seconds > 0 ? Math.round(seconds * 1000) : 0;
+    const ms = Number(settings.tooltipDelay) || 0;
+    return ms > 0 ? Math.round(ms) : 0;
   }
 
   function scheduleTip(url, rect, kind, rectSource) {
     cancelScheduledTip();
     concealTip();
+    if (!settings.tooltipActions.length) return;
     const reveal = () => {
       showTimer = 0;
       const live = typeof rectSource === "function" ? rectSource() || rect : rect;
@@ -219,24 +227,44 @@
     showCopied(currentRect());
   }
 
-  function openUrl(url, mode) {
-    const message = { type: "open", mode: mode, url: url };
-    try {
-      chrome.runtime.sendMessage(message, () => {
-        if (!chrome.runtime.lastError) return;
-        if (mode === "newWindow") window.open(url, "_blank", "noopener,noreferrer,width=1200,height=800");
-        else window.open(url, "_blank", "noopener,noreferrer");
-      });
-    } catch {
+  function openUrl(url, mode, after) {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      if (typeof after === "function") after();
+    };
+    const fallback = () => {
       if (mode === "newWindow") window.open(url, "_blank", "noopener,noreferrer,width=1200,height=800");
       else window.open(url, "_blank", "noopener,noreferrer");
+    };
+    try {
+      chrome.runtime.sendMessage({ type: "open", mode: mode, url: url }, () => {
+        if (chrome.runtime.lastError) fallback();
+        finish();
+      });
+    } catch {
+      fallback();
+      finish();
     }
   }
 
-  function runAction(action, url) {
+  function openHere(url, anchor) {
+    if (anchor && anchor.isConnected && anchor.hasAttribute("download")) {
+      followAnchor(anchor, url);
+      return;
+    }
+    location.assign(url);
+  }
+
+  function runAction(action, url, anchor) {
     if (!url || !action || action === "none") return;
     if (action === "copy") {
       copyUrl(url);
+      return;
+    }
+    if (action === "newTabAndOpen") {
+      openUrl(url, "newTab", () => openHere(url, anchor));
       return;
     }
     if (action === "newWindow" || action === "newTab") openUrl(url, action);
@@ -335,7 +363,8 @@
     event.stopPropagation();
     const url = tip.dataset.url;
     const action = button.dataset.action;
-    runAction(action, url);
+    const anchor = tip.dataset.kind === "anchor" && hoverAnchor && hoverAnchor.isConnected ? hoverAnchor : null;
+    runAction(action, url, anchor);
     disarmSelection();
     clearAnchorPending(false);
     hideTip();
@@ -394,8 +423,8 @@
     anchorState.downs = 0;
     if (!anchor || !url) return;
     if (count <= 1) followAnchor(anchor, url);
-    else if (count === 2) runAction(settings.anchorClick2, url);
-    else runAction(settings.anchorClick3, url);
+    else if (count === 2) runAction(settings.anchorClick2, url, anchor);
+    else runAction(settings.anchorClick3, url, anchor);
     hideTip();
   }
 
@@ -552,7 +581,10 @@
       hoverAnchor = null;
       hideTip();
     }
-    if (tip && !tip.hidden) renderTipButtons();
+    if (tip && !tip.hidden) {
+      if (!settings.tooltipActions.length) hideTip();
+      else renderTipButtons();
+    }
   }
 
   function start() {

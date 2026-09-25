@@ -4,7 +4,9 @@
   BetterLinks.DEFAULTS = {
     showTooltip: true,
     tooltipOnLinks: true,
+    tooltipActions: ["newWindow", "newTab", "newTabAndOpen", "copy"],
     tooltipDelay: 0,
+    tooltipDelayInMs: true,
     click1: "newWindow",
     click2: "newTab",
     click3: "copy",
@@ -15,8 +17,9 @@
     language: "auto",
   };
 
-  BetterLinks.TEXT_ACTIONS = ["newWindow", "newTab", "copy", "none"];
-  BetterLinks.ANCHOR_ACTIONS = ["newWindow", "newTab", "copy"];
+  BetterLinks.TEXT_ACTIONS = ["newWindow", "newTab", "newTabAndOpen", "copy", "none"];
+  BetterLinks.ANCHOR_ACTIONS = ["newWindow", "newTab", "newTabAndOpen", "copy"];
+  BetterLinks.TOOLTIP_ACTIONS = ["newWindow", "newTab", "newTabAndOpen", "copy"];
   BetterLinks.ANCHOR_MODES = ["ignore", "clicks"];
   BetterLinks.LANGUAGES = ["auto", "es", "en"];
 
@@ -48,11 +51,19 @@
     }
     if (!BetterLinks.LANGUAGES.includes(settings.language)) settings.language = defaults.language;
 
+    const rawActions = Array.isArray(source.tooltipActions) ? source.tooltipActions : defaults.tooltipActions;
+    settings.tooltipActions = BetterLinks.TOOLTIP_ACTIONS.filter((action) => rawActions.includes(action));
+
     settings.showTooltip = Boolean(settings.showTooltip);
     settings.tooltipOnLinks = hasTooltipOnLinks ? Boolean(source.tooltipOnLinks) : !legacyHidden;
     delete settings.showAnchorTooltip;
     const delay = Number(settings.tooltipDelay);
-    settings.tooltipDelay = Number.isFinite(delay) && delay > 0 ? delay : 0;
+    const delayInMs = Object.prototype.hasOwnProperty.call(source, "tooltipDelayInMs")
+      ? Boolean(source.tooltipDelayInMs)
+      : false;
+    if (!Number.isFinite(delay) || delay <= 0) settings.tooltipDelay = 0;
+    else settings.tooltipDelay = Math.round(delayInMs ? delay : delay * 1000);
+    settings.tooltipDelayInMs = true;
     settings.fixLinks = Boolean(settings.fixLinks);
     return settings;
   };

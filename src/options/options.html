@@ -11,6 +11,19 @@
       <h1 id="title">Better Links</h1>
 
       <section>
+        <h2 id="label-section-general"></h2>
+        <label class="check">
+          <input id="fix-links" type="checkbox" />
+          <span id="label-fix-links"></span>
+        </label>
+        <p id="fix-help" class="help"></p>
+        <div class="field">
+          <label id="label-language" for="language"></label>
+          <select id="language"></select>
+        </div>
+      </section>
+
+      <section>
         <h2 id="label-section-text"></h2>
         <label class="check">
           <input id="show-tooltip" type="checkbox" />
@@ -51,21 +64,14 @@
       </section>
 
       <section>
-        <h2 id="label-section-general"></h2>
+        <h2 id="label-section-tooltip"></h2>
+        <p id="label-tooltip-actions" class="group-label"></p>
+        <div id="tooltip-actions" class="checks"></div>
         <div class="field">
           <label id="label-tooltip-delay" for="tooltip-delay"></label>
-          <input id="tooltip-delay" type="number" min="0" step="0.1" />
+          <input id="tooltip-delay" type="number" min="0" step="1" />
         </div>
         <p id="tooltip-delay-help" class="help"></p>
-        <label class="check">
-          <input id="fix-links" type="checkbox" />
-          <span id="label-fix-links"></span>
-        </label>
-        <p id="fix-help" class="help"></p>
-        <div class="field">
-          <label id="label-language" for="language"></label>
-          <select id="language"></select>
-        </div>
       </section>
 
       <div class="actions">
