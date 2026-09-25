@@ -57,6 +57,13 @@
       "options.action.none": "Ninguna",
       "options.save": "Guardar",
       "options.saved": "Guardado",
+      "options.sectionBackup": "Copia de seguridad",
+      "options.backupHelp": "Si el archivo es antiguo, se aplican solo las opciones que reconozca.",
+      "options.export": "Exportar",
+      "options.import": "Importar",
+      "options.imported": "Importado",
+      "options.importError": "No se pudo leer el archivo.",
+      "options.importEmpty": "El archivo no tiene opciones reconocidas.",
     },
     en: {
       "tooltip.newWindow": "Open in a new window",
@@ -113,6 +120,13 @@
       "options.action.none": "None",
       "options.save": "Save",
       "options.saved": "Saved",
+      "options.sectionBackup": "Backup",
+      "options.backupHelp": "If the file is old, only the options it recognizes are applied.",
+      "options.export": "Export",
+      "options.import": "Import",
+      "options.imported": "Imported",
+      "options.importError": "Could not read the file.",
+      "options.importEmpty": "The file has no recognized options.",
     },
   };
 

@@ -81,6 +81,10 @@
     $("label-fix-links").textContent = BL.t(lang, "options.fixLinks");
     $("fix-help").textContent = BL.t(lang, "options.fixLinksHelp");
     $("label-language").textContent = BL.t(lang, "options.language");
+    $("label-section-backup").textContent = BL.t(lang, "options.sectionBackup");
+    $("backup-help").textContent = BL.t(lang, "options.backupHelp");
+    $("export").textContent = BL.t(lang, "options.export");
+    $("import").textContent = BL.t(lang, "options.import");
     $("save").textContent = BL.t(lang, "options.save");
     fillSelect($("click1"), choices("textClick", true), lang);
     fillSelect($("click2"), choices("textClick", true), lang);
@@ -184,6 +188,57 @@
   });
 
   $("anchor-mode").addEventListener("change", syncAnchorFields);
+
+  function showTransfer(key, isError) {
+    const status = $("transfer-status");
+    status.hidden = false;
+    status.classList.toggle("error", Boolean(isError));
+    status.textContent = BL.t(BL.resolveLanguage(settings.language), key);
+    window.setTimeout(() => {
+      status.hidden = true;
+    }, 1600);
+  }
+
+  $("export").addEventListener("click", () => {
+    const file = new Blob([JSON.stringify(BL.settingsForExport(settings), null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "better-links-settings.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  $("import").addEventListener("click", () => {
+    $("import-file").value = "";
+    $("import-file").click();
+  });
+
+  $("import-file").addEventListener("change", () => {
+    const file = $("import-file").files && $("import-file").files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let parsed;
+      try {
+        parsed = JSON.parse(String(reader.result || ""));
+      } catch {
+        showTransfer("options.importError", true);
+        return;
+      }
+      const next = BL.settingsFromFile(settings, parsed);
+      if (!next) {
+        showTransfer("options.importEmpty", true);
+        return;
+      }
+      chrome.storage.sync.set(next, () => {
+        writeForm(next);
+        showTransfer("options.imported", false);
+      });
+    };
+    reader.onerror = () => showTransfer("options.importError", true);
+    reader.readAsText(file);
+  });
 
   $("save").addEventListener("click", () => {
     const next = readForm();

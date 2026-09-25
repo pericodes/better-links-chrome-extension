@@ -91,6 +91,26 @@
     return settings;
   };
 
+  BetterLinks.settingsForExport = function settingsForExport(settings) {
+    const normalized = BetterLinks.normalizeSettings(settings);
+    const out = {};
+    for (const key of Object.keys(BetterLinks.DEFAULTS)) out[key] = normalized[key];
+    return out;
+  };
+
+  BetterLinks.settingsFromFile = function settingsFromFile(current, raw) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+    const known = {};
+    let count = 0;
+    for (const key of Object.keys(BetterLinks.DEFAULTS)) {
+      if (!Object.prototype.hasOwnProperty.call(raw, key)) continue;
+      known[key] = raw[key];
+      count += 1;
+    }
+    if (!count) return null;
+    return BetterLinks.normalizeSettings(Object.assign({}, current || {}, known));
+  };
+
   BetterLinks.anchorModeShowsTooltip = function anchorModeShowsTooltip(mode) {
     return mode === "tooltip" || mode === "both";
   };

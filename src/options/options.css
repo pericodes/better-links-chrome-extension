@@ -110,11 +110,23 @@ button {
 
 button:hover { background: #1d4ed8; }
 
+button.ghost {
+  background: transparent;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+}
+
+button.ghost:hover { background: #eff6ff; }
+
 .saved { color: #047857; }
+.saved.error { color: #b91c1c; }
 
 @media (prefers-color-scheme: dark) {
   body { background: #0f172a; color: #e5e7eb; }
   section { background: #111827; border-color: #1f2937; }
   select, input[type="number"] { background: #0f172a; color: inherit; border-color: #374151; }
   .help { color: #9ca3af; }
+  button.ghost { color: #93c5fd; border-color: #1d4ed8; }
+  button.ghost:hover { background: #1e293b; }
+  .saved.error { color: #fca5a5; }
 }
