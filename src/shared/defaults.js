@@ -22,11 +22,6 @@
     language: "auto",
   };
 
-  BetterLinks.TEXT_ACTIONS = ["newWindow", "newTab", "newTabAndSwitch", "copy", "none"];
-  BetterLinks.ANCHOR_ACTIONS = ["newWindow", "newTab", "newTabAndSwitch", "copy"];
-  BetterLinks.TOOLTIP_ACTIONS = ["newWindow", "newTab", "newTabAndSwitch", "copy"];
-  BetterLinks.IMAGE_ACTIONS = ["newWindow", "newTab", "newTabAndSwitch", "copyImageLink", "copyImage", "saveImage"];
-  BetterLinks.IMAGE_CLICK_ACTIONS = BetterLinks.IMAGE_ACTIONS.concat("none");
   BetterLinks.ANCHOR_MODES = ["ignore", "clicks"];
   BetterLinks.LANGUAGES = ["auto", "es", "en"];
 

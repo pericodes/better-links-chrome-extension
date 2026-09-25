@@ -7,7 +7,7 @@
   "permissions": ["storage", "contextMenus", "downloads"],
   "host_permissions": ["http://*/*", "https://*/*"],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background/service-worker.js"
   },
   "action": {
     "default_title": "Better Links",
@@ -33,6 +33,16 @@
         "shared/defaults.js",
         "shared/link.js",
         "shared/i18n.js",
+        "shared/actions.js",
+        "content/targets/selection.js",
+        "content/targets/anchor.js",
+        "content/targets/image.js",
+        "content/targets/resolve.js",
+        "content/actions/link.js",
+        "content/actions/image.js",
+        "content/actions/run.js",
+        "content/tooltip.js",
+        "content/gestures.js",
         "content/content.js"
       ],
       "css": ["content/content.css"],

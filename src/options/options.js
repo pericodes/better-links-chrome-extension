@@ -2,37 +2,10 @@
   const BL = globalThis.BetterLinks;
   const $ = (id) => document.getElementById(id);
 
-  const textActions = [
-    ["newWindow", "options.action.newWindow"],
-    ["newTab", "options.action.newTab"],
-    ["newTabAndSwitch", "options.action.newTabAndSwitch"],
-    ["copy", "options.action.copy"],
-    ["none", "options.action.none"],
-  ];
-  const anchorActions = textActions.filter(([value]) => value !== "none");
-  const tooltipActions = [
-    ["newWindow", "tooltip.newWindow"],
-    ["newTab", "tooltip.newTab"],
-    ["newTabAndSwitch", "tooltip.newTabAndSwitch"],
-    ["copy", "tooltip.copy"],
-  ];
-  const imageClickActions = [
-    ["newWindow", "image.action.newWindow"],
-    ["newTab", "image.action.newTab"],
-    ["newTabAndSwitch", "image.action.newTabAndSwitch"],
-    ["copyImageLink", "image.action.copyImageLink"],
-    ["copyImage", "image.action.copyImage"],
-    ["saveImage", "image.action.saveImage"],
-    ["none", "options.action.none"],
-  ];
-  const imageTooltipActions = [
-    ["newWindow", "image.tooltip.newWindow"],
-    ["newTab", "image.tooltip.newTab"],
-    ["newTabAndSwitch", "image.tooltip.newTabAndSwitch"],
-    ["copyImageLink", "image.tooltip.copyImageLink"],
-    ["copyImage", "image.tooltip.copyImage"],
-    ["saveImage", "image.tooltip.saveImage"],
-  ];
+  function choices(surface, withNone) {
+    const list = BL.actionChoices(surface);
+    return withNone ? list.concat([["none", "options.action.none"]]) : list;
+  }
   const modes = [
     ["ignore", "options.mode.ignore"],
     ["clicks", "options.mode.clicks"],
@@ -109,17 +82,17 @@
     $("fix-help").textContent = BL.t(lang, "options.fixLinksHelp");
     $("label-language").textContent = BL.t(lang, "options.language");
     $("save").textContent = BL.t(lang, "options.save");
-    fillSelect($("click1"), textActions, lang);
-    fillSelect($("click2"), textActions, lang);
-    fillSelect($("click3"), textActions, lang);
+    fillSelect($("click1"), choices("textClick", true), lang);
+    fillSelect($("click2"), choices("textClick", true), lang);
+    fillSelect($("click3"), choices("textClick", true), lang);
     fillSelect($("anchor-mode"), modes, lang);
-    fillSelect($("anchor-click2"), anchorActions, lang);
-    fillSelect($("anchor-click3"), anchorActions, lang);
-    fillChecks("tooltip-actions", tooltipActions, lang, settings.tooltipActions);
-    fillSelect($("image-click1"), imageClickActions, lang);
-    fillSelect($("image-click2"), imageClickActions, lang);
-    fillSelect($("image-click3"), imageClickActions, lang);
-    fillChecks("image-tooltip-actions", imageTooltipActions, lang, settings.imageTooltipActions);
+    fillSelect($("anchor-click2"), choices("anchorClick"), lang);
+    fillSelect($("anchor-click3"), choices("anchorClick"), lang);
+    fillChecks("tooltip-actions", choices("tooltip"), lang, settings.tooltipActions);
+    fillSelect($("image-click1"), choices("imageClick", true), lang);
+    fillSelect($("image-click2"), choices("imageClick", true), lang);
+    fillSelect($("image-click3"), choices("imageClick", true), lang);
+    fillChecks("image-tooltip-actions", choices("imageTooltip"), lang, settings.imageTooltipActions);
     fillSelect($("language"), languages, lang);
   }
 
