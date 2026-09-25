@@ -5,7 +5,7 @@
   const textActions = [
     ["newWindow", "options.action.newWindow"],
     ["newTab", "options.action.newTab"],
-    ["newTabAndOpen", "options.action.newTabAndOpen"],
+    ["newTabAndSwitch", "options.action.newTabAndSwitch"],
     ["copy", "options.action.copy"],
     ["none", "options.action.none"],
   ];
@@ -13,7 +13,7 @@
   const tooltipActions = [
     ["newWindow", "tooltip.newWindow"],
     ["newTab", "tooltip.newTab"],
-    ["newTabAndOpen", "tooltip.newTabAndOpen"],
+    ["newTabAndSwitch", "tooltip.newTabAndSwitch"],
     ["copy", "tooltip.copy"],
   ];
   const modes = [

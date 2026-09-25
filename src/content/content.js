@@ -14,6 +14,9 @@
   let toastTimer = 0;
   let hoverAnchor = null;
   let ignoreNextMouseUp = false;
+  let reportTimer = 0;
+  let lastReportedSelection = null;
+  let lastLinkReportAt = 0;
 
   const selectionState = {
     armed: false,
@@ -101,7 +104,7 @@
     const labels = {
       newWindow: "tooltip.newWindow",
       newTab: "tooltip.newTab",
-      newTabAndOpen: "tooltip.newTabAndOpen",
+      newTabAndSwitch: "tooltip.newTabAndSwitch",
       copy: "tooltip.copy",
     };
     tip.replaceChildren();
@@ -227,7 +230,7 @@
     showCopied(currentRect());
   }
 
-  function openUrl(url, mode, after) {
+  function openUrl(url, mode, after, active) {
     let settled = false;
     const finish = () => {
       if (settled) return;
@@ -238,8 +241,10 @@
       if (mode === "newWindow") window.open(url, "_blank", "noopener,noreferrer,width=1200,height=800");
       else window.open(url, "_blank", "noopener,noreferrer");
     };
+    const message = { type: "open", mode: mode, url: url };
+    if (active === false) message.active = false;
     try {
-      chrome.runtime.sendMessage({ type: "open", mode: mode, url: url }, () => {
+      chrome.runtime.sendMessage(message, () => {
         if (chrome.runtime.lastError) fallback();
         finish();
       });
@@ -249,25 +254,21 @@
     }
   }
 
-  function openHere(url, anchor) {
-    if (anchor && anchor.isConnected && anchor.hasAttribute("download")) {
-      followAnchor(anchor, url);
-      return;
-    }
-    location.assign(url);
-  }
-
-  function runAction(action, url, anchor) {
+  function runAction(action, url) {
     if (!url || !action || action === "none") return;
     if (action === "copy") {
       copyUrl(url);
       return;
     }
-    if (action === "newTabAndOpen") {
-      openUrl(url, "newTab", () => openHere(url, anchor));
+    if (action === "newTab") {
+      openUrl(url, "newTab", null, false);
       return;
     }
-    if (action === "newWindow" || action === "newTab") openUrl(url, action);
+    if (action === "newTabAndSwitch") {
+      openUrl(url, "newTab", null, true);
+      return;
+    }
+    if (action === "newWindow") openUrl(url, action);
   }
 
   function selectionInsideAnchor(selection) {
@@ -587,6 +588,39 @@
     }
   }
 
+  function currentSelectionText() {
+    const field = fieldSelection(document.activeElement);
+    if (field) return field.text;
+    const selection = window.getSelection();
+    return selection ? selection.toString() : "";
+  }
+
+  function reportSelection(text) {
+    const value = String(text || "");
+    if (!value.trim() && Date.now() - lastLinkReportAt < 400) return;
+    if (value === lastReportedSelection) return;
+    lastReportedSelection = value;
+    if (value.trim()) lastLinkReportAt = Date.now();
+    try {
+      chrome.runtime.sendMessage({ type: "selection", text: value }, () => {
+        if (chrome.runtime.lastError) lastReportedSelection = null;
+      });
+    } catch {
+      lastReportedSelection = null;
+    }
+  }
+
+  function scheduleSelectionReport() {
+    window.clearTimeout(reportTimer);
+    reportTimer = window.setTimeout(() => {
+      if (document.visibilityState === "hidden") {
+        reportSelection("");
+        return;
+      }
+      reportSelection(currentSelectionText());
+    }, 40);
+  }
+
   function start() {
     ensureUi();
     window.addEventListener("mousedown", onMouseDown, true);
@@ -596,6 +630,21 @@
     document.addEventListener("mouseout", onMouseOut, true);
     document.addEventListener("keydown", onKeyDown, true);
     document.addEventListener("selectionchange", onSelectionChange, true);
+    document.addEventListener("selectionchange", scheduleSelectionReport, true);
+    document.addEventListener("keyup", scheduleSelectionReport, true);
+    document.addEventListener("mouseup", scheduleSelectionReport, true);
+    document.addEventListener("visibilitychange", scheduleSelectionReport, true);
+    document.addEventListener("contextmenu", (event) => {
+      const anchor = anchorFromEvent(event);
+      const url = anchor ? anchorUrl(anchor) : "";
+      const selected = currentSelectionText();
+      if (selected.trim()) reportSelection(selected);
+      try {
+        chrome.runtime.sendMessage({ type: "link", url: url || "" });
+      } catch {
+        /* El service worker puede estar inactivo. */
+      }
+    }, true);
     window.addEventListener("scroll", reposition, true);
     window.addEventListener("resize", reposition);
     chrome.storage.onChanged.addListener((changes, area) => {

@@ -4,7 +4,7 @@
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "version": "1.0.0",
-  "permissions": ["storage"],
+  "permissions": ["storage", "contextMenus"],
   "background": {
     "service_worker": "background.js"
   },
