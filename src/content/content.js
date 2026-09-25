@@ -13,6 +13,7 @@
   let pendingKind = "";
   let toastTimer = 0;
   let hoverAnchor = null;
+  let hoverImage = null;
   let ignoreNextMouseUp = false;
   let reportTimer = 0;
   let lastReportedSelection = null;
@@ -29,6 +30,15 @@
   const anchorState = {
     anchor: null,
     url: "",
+    count: 0,
+    downs: 0,
+    timer: 0,
+  };
+
+  const imageState = {
+    image: null,
+    url: "",
+    anchor: null,
     count: 0,
     downs: 0,
     timer: 0,
@@ -53,6 +63,7 @@
         }
         .tip {
           display: flex;
+          flex-direction: column;
           gap: 4px;
           padding: 4px;
           background: #111827;
@@ -60,6 +71,15 @@
           border-radius: 8px;
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
           pointer-events: auto;
+        }
+        .tip-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+        }
+        .tip-row + .tip-row {
+          border-top: 1px solid #374151;
+          padding-top: 4px;
         }
         .tip[hidden], .toast[hidden] { display: none; }
         button {
@@ -92,7 +112,8 @@
     });
     tip.addEventListener("mouseover", () => window.clearTimeout(hideTimer));
     tip.addEventListener("mouseout", (event) => {
-      if (tip.dataset.kind !== "anchor") return;
+      const kind = tip.dataset.kind;
+      if (kind !== "anchor" && kind !== "image" && kind !== "both") return;
       const next = event.relatedTarget;
       if (next && (next === tip || tip.contains(next))) return;
       scheduleHide();
@@ -100,22 +121,38 @@
     (document.documentElement || document.body).appendChild(root);
   }
 
-  function renderTipButtons() {
-    const labels = {
-      newWindow: "tooltip.newWindow",
-      newTab: "tooltip.newTab",
-      newTabAndSwitch: "tooltip.newTabAndSwitch",
-      copy: "tooltip.copy",
-    };
+  const LINK_TIP_LABELS = {
+    newWindow: "tooltip.newWindow",
+    newTab: "tooltip.newTab",
+    newTabAndSwitch: "tooltip.newTabAndSwitch",
+    copy: "tooltip.copy",
+  };
+  const IMAGE_TIP_LABELS = {
+    newWindow: "image.tooltip.newWindow",
+    newTab: "image.tooltip.newTab",
+    newTabAndSwitch: "image.tooltip.newTabAndSwitch",
+    copyImageLink: "image.tooltip.copyImageLink",
+    copyImage: "image.tooltip.copyImage",
+    saveImage: "image.tooltip.saveImage",
+  };
+
+  function renderTipButtons(groups) {
     tip.replaceChildren();
-    for (const action of settings.tooltipActions) {
-      const key = labels[action];
-      if (!key) continue;
-      const button = document.createElement("button");
-      button.type = "button";
-      button.dataset.action = action;
-      button.textContent = t(key);
-      tip.appendChild(button);
+    for (const group of groups) {
+      const row = document.createElement("div");
+      row.className = "tip-row";
+      for (const action of group.actions) {
+        const key = group.labels[action];
+        if (!key) continue;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.action = action;
+        button.dataset.target = group.target;
+        button.dataset.url = group.url;
+        button.textContent = t(key);
+        row.appendChild(button);
+      }
+      if (row.childElementCount) tip.appendChild(row);
     }
   }
 
@@ -132,10 +169,10 @@
     tip.style.top = `${top}px`;
   }
 
-  function showTip(url, rect, kind) {
+  function showTip(rect, kind, groups) {
     ensureUi();
-    renderTipButtons();
-    tip.dataset.url = url;
+    renderTipButtons(groups);
+    if (!tip.childElementCount) return;
     tip.dataset.kind = kind;
     tip.hidden = false;
     placeNear(rect);
@@ -159,15 +196,15 @@
     return ms > 0 ? Math.round(ms) : 0;
   }
 
-  function scheduleTip(url, rect, kind, rectSource) {
+  function scheduleTip(rect, kind, rectSource, groups) {
     cancelScheduledTip();
     concealTip();
-    if (!settings.tooltipActions.length) return;
+    if (!groups.some((group) => group.actions.length)) return;
     const reveal = () => {
       showTimer = 0;
       const live = typeof rectSource === "function" ? rectSource() || rect : rect;
       if (!live) return;
-      showTip(url, live, kind);
+      showTip(live, kind, groups);
     };
     const delay = tooltipDelayMs();
     if (delay === 0) reveal();
@@ -271,6 +308,59 @@
     if (action === "newWindow") openUrl(url, action);
   }
 
+  function copyImage(url) {
+    const pngPromise = new Promise((resolve, reject) => {
+      try {
+        chrome.runtime.sendMessage({ type: "imagePng", url: url }, (response) => {
+          if (chrome.runtime.lastError || !response || !response.buffer) {
+            reject(new Error("copy"));
+            return;
+          }
+          resolve(new Blob([response.buffer], { type: "image/png" }));
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+    navigator.clipboard.write([new ClipboardItem({ "image/png": pngPromise })]).then(
+      () => showCopied(currentRect()),
+      () => {}
+    );
+  }
+
+  function saveImage(url) {
+    try {
+      chrome.runtime.sendMessage({ type: "saveImage", url: url });
+    } catch {
+      /* El service worker puede estar inactivo. */
+    }
+  }
+
+  function runImageAction(action, url) {
+    if (!url || !action || action === "none") return;
+    if (action === "copyImageLink") {
+      copyUrl(url);
+      return;
+    }
+    if (action === "copyImage") {
+      copyImage(url);
+      return;
+    }
+    if (action === "saveImage") {
+      saveImage(url);
+      return;
+    }
+    if (action === "newTab") {
+      openUrl(url, "newTab", null, false);
+      return;
+    }
+    if (action === "newTabAndSwitch") {
+      openUrl(url, "newTab", null, true);
+      return;
+    }
+    if (action === "newWindow") openUrl(url, "newWindow");
+  }
+
   function selectionInsideAnchor(selection) {
     if (!selection || !selection.rangeCount || selection.isCollapsed) return false;
     const range = selection.getRangeAt(0);
@@ -327,7 +417,9 @@
     selectionState.fieldOnly = fieldOnly;
     window.clearTimeout(selectionState.timer);
     if (settings.showTooltip) {
-      scheduleTip(url, rect, "selection", () => (fieldOnly ? rect : selectionRect()));
+      scheduleTip(rect, "selection", () => (fieldOnly ? rect : selectionRect()), [
+        { actions: settings.tooltipActions, labels: LINK_TIP_LABELS, url: url, target: "link" },
+      ]);
     } else hideTip();
   }
 
@@ -362,12 +454,13 @@
     if (!button || !tip) return false;
     event.preventDefault();
     event.stopPropagation();
-    const url = tip.dataset.url;
+    const url = button.dataset.url;
     const action = button.dataset.action;
-    const anchor = tip.dataset.kind === "anchor" && hoverAnchor && hoverAnchor.isConnected ? hoverAnchor : null;
-    runAction(action, url, anchor);
+    if (button.dataset.target === "image") runImageAction(action, url);
+    else runAction(action, url);
     disarmSelection();
     clearAnchorPending(false);
+    clearImagePending(false);
     hideTip();
     return true;
   }
@@ -379,6 +472,60 @@
     const node = event.target && event.target.nodeType === 1 ? event.target : event.target && event.target.parentElement;
     if (!node || !node.closest) return null;
     return node.closest("a[href]");
+  }
+
+  function imageFromEvent(event) {
+    if (fromUi(event)) return null;
+    const node = event.target && event.target.nodeType === 1 ? event.target : event.target && event.target.parentElement;
+    if (!node || !node.closest) return null;
+    return node.closest("img");
+  }
+
+  function imageUrl(image) {
+    if (!image) return null;
+    const src = image.currentSrc || image.src;
+    if (!src) return null;
+    try {
+      const url = new URL(src, location.href).href;
+      return BL.isHttpUrl(url) ? url : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function clearImagePending(follow) {
+    window.clearTimeout(imageState.timer);
+    const image = imageState.image;
+    const url = imageState.url;
+    const anchor = imageState.anchor;
+    const count = imageState.count;
+    imageState.image = null;
+    imageState.url = "";
+    imageState.anchor = null;
+    imageState.count = 0;
+    imageState.downs = 0;
+    if (!follow || !image || count !== 1) return;
+    const anchorUrlValue = anchor ? anchorUrl(anchor) : "";
+    if (anchor && anchorUrlValue) followAnchor(anchor, anchorUrlValue);
+  }
+
+  function finishImageClicks() {
+    const { url, anchor, count } = imageState;
+    imageState.image = null;
+    imageState.url = "";
+    imageState.anchor = null;
+    imageState.count = 0;
+    imageState.downs = 0;
+    if (!url) return;
+    const action = count <= 1 ? settings.imageClick1 : count === 2 ? settings.imageClick2 : settings.imageClick3;
+    if ((!action || action === "none") && count <= 1 && anchor) {
+      const anchorUrlValue = anchorUrl(anchor);
+      if (anchorUrlValue) followAnchor(anchor, anchorUrlValue);
+      hideTip();
+      return;
+    }
+    runImageAction(action, url);
+    hideTip();
   }
 
   function anchorUrl(anchor) {
@@ -435,7 +582,7 @@
       ignoreNextMouseUp = false;
       return;
     }
-    if (anchorFromEvent(event)) return;
+    if (anchorFromEvent(event) || imageFromEvent(event)) return;
 
     const field = fieldSelection(event.target);
     if (field) {
@@ -471,6 +618,14 @@
     if (event.button !== 0) return;
     if (activateTooltipButton(event)) return;
     if (fromUi(event)) return;
+    const image = imageFromEvent(event);
+    if (image && imageUrl(image) && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+      if (imageState.image === image && imageState.downs >= 1) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      return;
+    }
     const anchor = anchorFromEvent(event);
     if (anchor && BL.anchorModeAppliesClicks(settings.anchorMode)) {
       const url = anchorUrl(anchor);
@@ -498,6 +653,26 @@
 
   function onClick(event) {
     if (event.button !== 0 || fromUi(event)) return;
+    const image = imageFromEvent(event);
+    const src = image ? imageUrl(image) : null;
+    if (image && src && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+      event.preventDefault();
+      event.stopPropagation();
+      const anchor = image.closest("a[href]");
+      if (imageState.image !== image) {
+        clearImagePending(true);
+        imageState.image = image;
+        imageState.url = src;
+        imageState.anchor = anchor;
+        imageState.count = 0;
+        imageState.downs = 0;
+      }
+      imageState.count += 1;
+      imageState.downs += 1;
+      window.clearTimeout(imageState.timer);
+      imageState.timer = window.setTimeout(finishImageClicks, CLICK_WINDOW_MS);
+      return;
+    }
     if (!BL.anchorModeAppliesClicks(settings.anchorMode)) return;
     const anchor = anchorFromEvent(event);
     if (!anchor) return;
@@ -520,21 +695,61 @@
     anchorState.timer = window.setTimeout(finishAnchorClicks, CLICK_WINDOW_MS);
   }
 
+  function linkTipGroup(url) {
+    return { actions: settings.tooltipActions, labels: LINK_TIP_LABELS, url: url, target: "link" };
+  }
+
+  function imageTipGroup(url) {
+    return { actions: settings.imageTooltipActions, labels: IMAGE_TIP_LABELS, url: url, target: "image" };
+  }
+
   function onMouseOver(event) {
+    const image = imageFromEvent(event);
+    const src = image ? imageUrl(image) : null;
+    if (image && src) {
+      const anchor = image.closest("a[href]");
+      const link = anchor ? anchorUrl(anchor) : null;
+      const groups = [];
+      if (link && settings.tooltipOnLinks) groups.push(linkTipGroup(link));
+      if (settings.showImageTooltip) groups.push(imageTipGroup(src));
+      if (!groups.length) return;
+      window.clearTimeout(hideTimer);
+      const kind = groups.length > 1 ? "both" : groups[0].target === "image" ? "image" : "anchor";
+      if (hoverImage === image && (showTimer || (tip && !tip.hidden && tip.dataset.kind === kind))) return;
+      hoverImage = image;
+      hoverAnchor = anchor;
+      scheduleTip(image.getBoundingClientRect(), kind, () => (image.isConnected ? image.getBoundingClientRect() : null), groups);
+      return;
+    }
     if (!settings.tooltipOnLinks) return;
     const anchor = anchorFromEvent(event);
     if (!anchor) return;
     const url = anchorUrl(anchor);
     if (!url) return;
     window.clearTimeout(hideTimer);
-    if (hoverAnchor === anchor && (showTimer || (tip && !tip.hidden && tip.dataset.kind === "anchor"))) return;
+    if (hoverAnchor === anchor && !hoverImage && (showTimer || (tip && !tip.hidden && tip.dataset.kind === "anchor"))) return;
     hoverAnchor = anchor;
-    scheduleTip(url, anchor.getBoundingClientRect(), "anchor", () =>
+    hoverImage = null;
+    scheduleTip(anchor.getBoundingClientRect(), "anchor", () =>
       anchor.isConnected ? anchor.getBoundingClientRect() : null
-    );
+    , [linkTipGroup(url)]);
   }
 
   function onMouseOut(event) {
+    const image = imageFromEvent(event);
+    if (image) {
+      const next = event.relatedTarget;
+      if (image.matches(":hover")) return;
+      if (next === root || (next && next.getRootNode && next.getRootNode() === shadow)) return;
+      if (next && image.contains(next)) return;
+      if (hoverImage === image) hoverImage = null;
+      if (pendingKind === "image" || pendingKind === "both") cancelScheduledTip();
+      const anchor = image.closest("a[href]");
+      if (anchor && next && anchor.contains(next)) return;
+      if (!tip || tip.hidden || (tip.dataset.kind !== "image" && tip.dataset.kind !== "both")) return;
+      scheduleHide();
+      return;
+    }
     const anchor = anchorFromEvent(event);
     if (!anchor) return;
     const next = event.relatedTarget;
@@ -551,6 +766,7 @@
     if (event.key !== "Escape") return;
     disarmSelection();
     clearAnchorPending(false);
+    clearImagePending(false);
     hideTip();
   }
 
@@ -582,9 +798,9 @@
       hoverAnchor = null;
       hideTip();
     }
-    if (tip && !tip.hidden) {
-      if (!settings.tooltipActions.length) hideTip();
-      else renderTipButtons();
+    if (!settings.showImageTooltip && (hoverImage || (tip && (tip.dataset.kind === "image" || tip.dataset.kind === "both")))) {
+      hoverImage = null;
+      hideTip();
     }
   }
 
@@ -637,10 +853,13 @@
     document.addEventListener("contextmenu", (event) => {
       const anchor = anchorFromEvent(event);
       const url = anchor ? anchorUrl(anchor) : "";
+      const image = imageFromEvent(event);
+      const src = image ? imageUrl(image) || "" : "";
       const selected = currentSelectionText();
       if (selected.trim()) reportSelection(selected);
       try {
         chrome.runtime.sendMessage({ type: "link", url: url || "" });
+        chrome.runtime.sendMessage({ type: "image", url: src });
       } catch {
         /* El service worker puede estar inactivo. */
       }

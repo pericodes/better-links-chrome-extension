@@ -16,6 +16,23 @@
     ["newTabAndSwitch", "tooltip.newTabAndSwitch"],
     ["copy", "tooltip.copy"],
   ];
+  const imageClickActions = [
+    ["newWindow", "image.action.newWindow"],
+    ["newTab", "image.action.newTab"],
+    ["newTabAndSwitch", "image.action.newTabAndSwitch"],
+    ["copyImageLink", "image.action.copyImageLink"],
+    ["copyImage", "image.action.copyImage"],
+    ["saveImage", "image.action.saveImage"],
+    ["none", "options.action.none"],
+  ];
+  const imageTooltipActions = [
+    ["newWindow", "image.tooltip.newWindow"],
+    ["newTab", "image.tooltip.newTab"],
+    ["newTabAndSwitch", "image.tooltip.newTabAndSwitch"],
+    ["copyImageLink", "image.tooltip.copyImageLink"],
+    ["copyImage", "image.tooltip.copyImage"],
+    ["saveImage", "image.tooltip.saveImage"],
+  ];
   const modes = [
     ["ignore", "options.mode.ignore"],
     ["clicks", "options.mode.clicks"],
@@ -40,15 +57,15 @@
     if ([...select.options].some((option) => option.value === current)) select.value = current;
   }
 
-  function selectedTooltipActions() {
-    return [...$("tooltip-actions").querySelectorAll("input:checked")].map((input) => input.value);
+  function selectedChecks(id) {
+    return [...$(id).querySelectorAll("input:checked")].map((input) => input.value);
   }
 
-  function fillTooltipActions(lang, selected) {
+  function fillChecks(id, options, lang, selected) {
     const chosen = new Set(selected);
-    const box = $("tooltip-actions");
+    const box = $(id);
     box.replaceChildren();
-    for (const [value, key] of tooltipActions) {
+    for (const [value, key] of options) {
       const label = document.createElement("label");
       label.className = "check";
       const input = document.createElement("input");
@@ -81,6 +98,12 @@
     $("label-anchor-mode").textContent = BL.t(lang, "options.anchorMode");
     $("label-anchor-click2").textContent = BL.t(lang, "options.anchorClick2");
     $("label-anchor-click3").textContent = BL.t(lang, "options.anchorClick3");
+    $("label-section-image").textContent = BL.t(lang, "options.sectionImage");
+    $("label-show-image-tooltip").textContent = BL.t(lang, "options.showImageTooltip");
+    $("label-image-click1").textContent = BL.t(lang, "options.click1");
+    $("label-image-click2").textContent = BL.t(lang, "options.click2");
+    $("label-image-click3").textContent = BL.t(lang, "options.click3");
+    $("label-image-tooltip-actions").textContent = BL.t(lang, "options.imageTooltipActions");
     $("label-section-general").textContent = BL.t(lang, "options.sectionGeneral");
     $("label-fix-links").textContent = BL.t(lang, "options.fixLinks");
     $("fix-help").textContent = BL.t(lang, "options.fixLinksHelp");
@@ -92,7 +115,11 @@
     fillSelect($("anchor-mode"), modes, lang);
     fillSelect($("anchor-click2"), anchorActions, lang);
     fillSelect($("anchor-click3"), anchorActions, lang);
-    fillTooltipActions(lang, settings.tooltipActions);
+    fillChecks("tooltip-actions", tooltipActions, lang, settings.tooltipActions);
+    fillSelect($("image-click1"), imageClickActions, lang);
+    fillSelect($("image-click2"), imageClickActions, lang);
+    fillSelect($("image-click3"), imageClickActions, lang);
+    fillChecks("image-tooltip-actions", imageTooltipActions, lang, settings.imageTooltipActions);
     fillSelect($("language"), languages, lang);
   }
 
@@ -106,7 +133,7 @@
     return BL.normalizeSettings({
       showTooltip: $("show-tooltip").checked,
       tooltipOnLinks: $("show-anchor-tooltip").checked,
-      tooltipActions: selectedTooltipActions(),
+      tooltipActions: selectedChecks("tooltip-actions"),
       tooltipDelay: $("tooltip-delay").value,
       tooltipDelayInMs: true,
       click1: $("click1").value,
@@ -115,6 +142,11 @@
       anchorMode: $("anchor-mode").value,
       anchorClick2: $("anchor-click2").value,
       anchorClick3: $("anchor-click3").value,
+      showImageTooltip: $("show-image-tooltip").checked,
+      imageClick1: $("image-click1").value,
+      imageClick2: $("image-click2").value,
+      imageClick3: $("image-click3").value,
+      imageTooltipActions: selectedChecks("image-tooltip-actions"),
       fixLinks: $("fix-links").checked,
       language: $("language").value,
     });
@@ -131,6 +163,10 @@
     $("anchor-mode").value = settings.anchorMode;
     $("anchor-click2").value = settings.anchorClick2;
     $("anchor-click3").value = settings.anchorClick3;
+    $("show-image-tooltip").checked = settings.showImageTooltip;
+    $("image-click1").value = settings.imageClick1;
+    $("image-click2").value = settings.imageClick2;
+    $("image-click3").value = settings.imageClick3;
     $("fix-links").checked = settings.fixLinks;
     $("language").value = settings.language;
     applyLabels();
@@ -140,6 +176,9 @@
     $("anchor-mode").value = settings.anchorMode;
     $("anchor-click2").value = settings.anchorClick2;
     $("anchor-click3").value = settings.anchorClick3;
+    $("image-click1").value = settings.imageClick1;
+    $("image-click2").value = settings.imageClick2;
+    $("image-click3").value = settings.imageClick3;
     $("language").value = settings.language;
     syncAnchorFields();
   }
@@ -152,7 +191,11 @@
     const anchorMode = $("anchor-mode").value;
     const anchorClick2 = $("anchor-click2").value;
     const anchorClick3 = $("anchor-click3").value;
-    settings.tooltipActions = selectedTooltipActions();
+    settings.tooltipActions = selectedChecks("tooltip-actions");
+    const imageClick1 = $("image-click1").value;
+    const imageClick2 = $("image-click2").value;
+    const imageClick3 = $("image-click3").value;
+    settings.imageTooltipActions = selectedChecks("image-tooltip-actions");
     applyLabels();
     $("click1").value = click1;
     $("click2").value = click2;
@@ -160,6 +203,9 @@
     $("anchor-mode").value = anchorMode;
     $("anchor-click2").value = anchorClick2;
     $("anchor-click3").value = anchorClick3;
+    $("image-click1").value = imageClick1;
+    $("image-click2").value = imageClick2;
+    $("image-click3").value = imageClick3;
     $("language").value = settings.language;
     syncAnchorFields();
   });

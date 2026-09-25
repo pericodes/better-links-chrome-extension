@@ -13,6 +13,11 @@
     anchorMode: "clicks",
     anchorClick2: "newTab",
     anchorClick3: "copy",
+    showImageTooltip: true,
+    imageClick1: "none",
+    imageClick2: "newTabAndSwitch",
+    imageClick3: "copyImage",
+    imageTooltipActions: ["newWindow", "newTab", "newTabAndSwitch", "copyImageLink", "copyImage", "saveImage"],
     fixLinks: true,
     language: "auto",
   };
@@ -20,6 +25,8 @@
   BetterLinks.TEXT_ACTIONS = ["newWindow", "newTab", "newTabAndSwitch", "copy", "none"];
   BetterLinks.ANCHOR_ACTIONS = ["newWindow", "newTab", "newTabAndSwitch", "copy"];
   BetterLinks.TOOLTIP_ACTIONS = ["newWindow", "newTab", "newTabAndSwitch", "copy"];
+  BetterLinks.IMAGE_ACTIONS = ["newWindow", "newTab", "newTabAndSwitch", "copyImageLink", "copyImage", "saveImage"];
+  BetterLinks.IMAGE_CLICK_ACTIONS = BetterLinks.IMAGE_ACTIONS.concat("none");
   BetterLinks.ANCHOR_MODES = ["ignore", "clicks"];
   BetterLinks.LANGUAGES = ["auto", "es", "en"];
 
@@ -62,6 +69,15 @@
       renameAction
     );
     settings.tooltipActions = BetterLinks.TOOLTIP_ACTIONS.filter((action) => rawActions.includes(action));
+
+    if (!BetterLinks.IMAGE_CLICK_ACTIONS.includes(settings.imageClick1)) settings.imageClick1 = defaults.imageClick1;
+    if (!BetterLinks.IMAGE_CLICK_ACTIONS.includes(settings.imageClick2)) settings.imageClick2 = defaults.imageClick2;
+    if (!BetterLinks.IMAGE_CLICK_ACTIONS.includes(settings.imageClick3)) settings.imageClick3 = defaults.imageClick3;
+    const rawImageActions = Array.isArray(source.imageTooltipActions)
+      ? source.imageTooltipActions
+      : defaults.imageTooltipActions;
+    settings.imageTooltipActions = BetterLinks.IMAGE_ACTIONS.filter((action) => rawImageActions.includes(action));
+    settings.showImageTooltip = Boolean(settings.showImageTooltip);
 
     settings.showTooltip = Boolean(settings.showTooltip);
     settings.tooltipOnLinks = hasTooltipOnLinks ? Boolean(source.tooltipOnLinks) : !legacyHidden;
