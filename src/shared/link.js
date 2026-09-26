@@ -51,6 +51,25 @@
     return BetterLinks.isHttpUrl(withProtocol) ? withProtocol : null;
   };
 
+  function stripListMarker(value) {
+    return String(value == null ? "" : value)
+      .trim()
+      .replace(/^(?:[-*•·▪◦]|\d+[.)])\s+/, "");
+  }
+
+  BetterLinks.resolveTextFragments = function resolveTextFragments(fragments, fixLinks) {
+    const urls = [];
+    const list = Array.isArray(fragments) ? fragments : [fragments];
+    for (const fragment of list) {
+      const lines = String(fragment == null ? "" : fragment).split(/\r?\n/);
+      for (const line of lines) {
+        const url = BetterLinks.resolveTextLink(stripListMarker(line), fixLinks);
+        if (url) urls.push(url);
+      }
+    }
+    return urls;
+  };
+
   BetterLinks.resolveAnchorUrl = function resolveAnchorUrl(hrefAttr, absoluteHref, fixLinks) {
     const attr = String(hrefAttr == null ? "" : hrefAttr).trim();
 

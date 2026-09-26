@@ -66,6 +66,55 @@
     openNewTab(url, tab, spec.active !== false);
   };
 
+  function safeUrls(urls) {
+    return (Array.isArray(urls) ? urls : []).filter((url) => BetterLinks.isSafeHttpUrl(url));
+  }
+
+  function openAllInCurrentWindow(urls, tab, done) {
+    const windowId = tab && tab.windowId != null ? tab.windowId : undefined;
+    const originalId = tab && tab.id != null ? tab.id : null;
+    let nextIndex = tab && tab.index != null ? tab.index + 1 : undefined;
+    let cursor = 0;
+
+    function next() {
+      if (cursor >= urls.length) {
+        if (originalId == null) {
+          if (done) done(true);
+          return;
+        }
+        chrome.tabs.update(originalId, { active: true }, () => {
+          void chrome.runtime.lastError;
+          if (done) done(true);
+        });
+        return;
+      }
+      const url = urls[cursor];
+      cursor += 1;
+      chrome.tabs.create({ url: url, active: false, windowId: windowId, index: nextIndex }, (created) => {
+        if (!chrome.runtime.lastError && created && nextIndex != null) nextIndex += 1;
+        next();
+      });
+    }
+
+    next();
+  }
+
+  BetterLinks.handleOpenAllMessage = function handleOpenAllMessage(message, sender, sendResponse) {
+    if (!message || message.type !== "openAll") return false;
+    const urls = safeUrls(message.urls);
+    if (!urls.length) return false;
+    if (message.mode === "newWindow") {
+      chrome.windows.create({ url: urls, focused: true });
+      sendResponse({ ok: true });
+      return false;
+    }
+    if (message.mode === "currentWindow") {
+      openAllInCurrentWindow(urls, sender && sender.tab, (ok) => sendResponse({ ok: ok }));
+      return true;
+    }
+    return false;
+  };
+
   BetterLinks.handleOpenMessage = function handleOpenMessage(message, sender, sendResponse) {
     if (!message || message.type !== "open" || !BetterLinks.isSafeHttpUrl(message.url)) return false;
     if (message.mode === "newWindow") {

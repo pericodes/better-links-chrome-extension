@@ -18,6 +18,8 @@
         tooltip: "tooltip.newWindow",
         imageClick: "image.action.newWindow",
         imageTooltip: "image.tooltip.newWindow",
+        videoClick: "video.action.newWindow",
+        videoTooltip: "video.tooltip.newWindow",
         menu: "tooltip.newWindow",
       },
     },
@@ -31,6 +33,8 @@
         tooltip: "tooltip.newTab",
         imageClick: "image.action.newTab",
         imageTooltip: "image.tooltip.newTab",
+        videoClick: "video.action.newTab",
+        videoTooltip: "video.tooltip.newTab",
         menu: "tooltip.newTab",
       },
     },
@@ -44,6 +48,8 @@
         tooltip: "tooltip.newTabAndSwitch",
         imageClick: "image.action.newTabAndSwitch",
         imageTooltip: "image.tooltip.newTabAndSwitch",
+        videoClick: "video.action.newTabAndSwitch",
+        videoTooltip: "video.tooltip.newTabAndSwitch",
         menu: "tooltip.newTabAndSwitch",
       },
     },
@@ -53,6 +59,8 @@
         textClick: linkOptions.copy,
         anchorClick: linkOptions.copy,
         tooltip: "tooltip.copy",
+        videoClick: "video.action.copy",
+        videoTooltip: "video.tooltip.copy",
       },
     },
     copyImageLink: {
@@ -76,6 +84,29 @@
         imageTooltip: "image.tooltip.saveImage",
       },
     },
+    openAllNewWindow: {
+      kind: "openAll",
+      mode: "newWindow",
+      surfaces: {
+        multiClick: "options.action.openAllNewWindow",
+        multiTooltip: "tooltip.openAllNewWindow",
+      },
+    },
+    openAllCurrentWindow: {
+      kind: "openAll",
+      mode: "currentWindow",
+      surfaces: {
+        multiClick: "options.action.openAllCurrentWindow",
+        multiTooltip: "tooltip.openAllCurrentWindow",
+      },
+    },
+    copyLinks: {
+      kind: "copyLinks",
+      surfaces: {
+        multiClick: "options.action.copyLinks",
+        multiTooltip: "tooltip.copyLinks",
+      },
+    },
   };
 
   BetterLinks.actionsFor = function actionsFor(surface) {
@@ -91,4 +122,8 @@
   BetterLinks.TOOLTIP_ACTIONS = BetterLinks.actionsFor("tooltip");
   BetterLinks.IMAGE_ACTIONS = BetterLinks.actionsFor("imageTooltip");
   BetterLinks.IMAGE_CLICK_ACTIONS = BetterLinks.actionsFor("imageClick").concat("none");
+  BetterLinks.VIDEO_ACTIONS = BetterLinks.actionsFor("videoTooltip");
+  BetterLinks.VIDEO_CLICK_ACTIONS = BetterLinks.actionsFor("videoClick").concat("none");
+  BetterLinks.MULTI_ACTIONS = BetterLinks.actionsFor("multiTooltip");
+  BetterLinks.MULTI_CLICK_ACTIONS = BetterLinks.actionsFor("multiClick").concat("none");
 })(globalThis);

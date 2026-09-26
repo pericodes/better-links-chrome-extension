@@ -44,6 +44,7 @@
     try {
       chrome.runtime.sendMessage({ type: "link", url: found.anchor ? found.anchor.url : "" });
       chrome.runtime.sendMessage({ type: "image", url: found.image ? found.image.url : "" });
+      chrome.runtime.sendMessage({ type: "video", url: found.video ? found.video.url : "" });
     } catch {
       /* El service worker puede estar inactivo. */
     }

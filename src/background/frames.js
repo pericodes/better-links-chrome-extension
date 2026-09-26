@@ -4,6 +4,7 @@
   const textByFrame = new Map();
   const linkByFrame = new Map();
   const imageByFrame = new Map();
+  const videoByFrame = new Map();
 
   function keyFor(tabId, frameId) {
     return tabId + ":" + frameId;
@@ -33,6 +34,11 @@
       if (url && BetterLinks.isSafeHttpUrl(url)) imageByFrame.set(key, url);
       else imageByFrame.delete(key);
     },
+    setVideo(tabId, frameId, url) {
+      const key = keyFor(tabId, frameId);
+      if (url && BetterLinks.isSafeHttpUrl(url)) videoByFrame.set(key, url);
+      else videoByFrame.delete(key);
+    },
     textsForTab(tabId) {
       if (tabId == null) return [];
       const prefix = tabId + ":";
@@ -48,10 +54,14 @@
     image(tabId, frameId) {
       return imageByFrame.get(keyFor(tabId, frameId)) || "";
     },
+    video(tabId, frameId) {
+      return videoByFrame.get(keyFor(tabId, frameId)) || "";
+    },
     forget(tabId) {
       forgetMap(textByFrame, tabId);
       forgetMap(linkByFrame, tabId);
       forgetMap(imageByFrame, tabId);
+      forgetMap(videoByFrame, tabId);
     },
   };
 })(globalThis);

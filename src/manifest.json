@@ -32,11 +32,13 @@
       "js": [
         "shared/defaults.js",
         "shared/link.js",
+        "shared/video.js",
         "shared/i18n.js",
         "shared/actions.js",
         "content/targets/selection.js",
         "content/targets/anchor.js",
         "content/targets/image.js",
+        "content/targets/video.js",
         "content/targets/resolve.js",
         "content/actions/link.js",
         "content/actions/image.js",

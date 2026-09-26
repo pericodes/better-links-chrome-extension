@@ -41,6 +41,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
+  if (message.type === "video" && ids) {
+    BL.frames.setVideo(ids.tabId, ids.frameId, message.url);
+    return;
+  }
+
   if (message.type === "link" && ids) {
     BL.frames.setLink(ids.tabId, ids.frameId, message.url);
     return;
@@ -56,6 +61,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.type === "openAll") return BL.handleOpenAllMessage(message, sender, sendResponse);
   if (message.type === "open") return BL.handleOpenMessage(message, sender, sendResponse);
 });
 

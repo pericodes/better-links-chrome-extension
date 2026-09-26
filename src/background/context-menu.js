@@ -29,6 +29,14 @@
       titleKey: "image.tooltip.newTabAndSwitch",
       source: "image",
     },
+    {
+      id: "bl-video-new-tab-switch",
+      contexts: ["video"],
+      visible: true,
+      action: "newTabAndSwitch",
+      titleKey: "video.tooltip.newTabAndSwitch",
+      source: "video",
+    },
   ];
   const SELECTION_IDS = ITEMS.filter((item) => item.contexts[0] === "selection").map((item) => item.id);
 
@@ -112,7 +120,9 @@
     const keyTab = tab && tab.id != null ? tab.id : null;
     const stored = keyTab == null ? "" : source === "image"
       ? BetterLinks.frames.image(keyTab, frameId)
-      : BetterLinks.frames.link(keyTab, frameId);
+      : source === "video"
+        ? BetterLinks.frames.video(keyTab, frameId)
+        : BetterLinks.frames.link(keyTab, frameId);
     const url = stored && BetterLinks.isSafeHttpUrl(stored) ? stored : fallback;
     return url && BetterLinks.isSafeHttpUrl(url) ? url : "";
   }
@@ -121,8 +131,8 @@
     const item = ITEMS.find((entry) => entry.id === info.menuItemId);
     if (!item) return;
 
-    if (item.source === "image" || item.source === "link") {
-      const fallback = item.source === "image" ? info.srcUrl : info.linkUrl;
+    if (item.source === "image" || item.source === "link" || item.source === "video") {
+      const fallback = item.source === "link" ? info.linkUrl : info.srcUrl;
       const url = storedUrl(item.source, tab, info.frameId, fallback);
       if (url) BetterLinks.openFromAction(item.action, url, tab);
       return;

@@ -67,6 +67,13 @@
     $("label-click1").textContent = BL.t(lang, "options.click1");
     $("label-click2").textContent = BL.t(lang, "options.click2");
     $("label-click3").textContent = BL.t(lang, "options.click3");
+    $("label-section-multi").textContent = BL.t(lang, "options.sectionMulti");
+    $("label-multi-links").textContent = BL.t(lang, "options.multiLinks");
+    $("multi-help").textContent = BL.t(lang, "options.multiLinksHelp");
+    $("label-multi-click1").textContent = BL.t(lang, "options.click1");
+    $("label-multi-click2").textContent = BL.t(lang, "options.click2");
+    $("label-multi-click3").textContent = BL.t(lang, "options.click3");
+    $("label-multi-tooltip-actions").textContent = BL.t(lang, "options.multiTooltipActions");
     $("label-section-anchor").textContent = BL.t(lang, "options.sectionAnchor");
     $("label-anchor-mode").textContent = BL.t(lang, "options.anchorMode");
     $("label-anchor-click2").textContent = BL.t(lang, "options.anchorClick2");
@@ -77,6 +84,12 @@
     $("label-image-click2").textContent = BL.t(lang, "options.click2");
     $("label-image-click3").textContent = BL.t(lang, "options.click3");
     $("label-image-tooltip-actions").textContent = BL.t(lang, "options.imageTooltipActions");
+    $("label-section-video").textContent = BL.t(lang, "options.sectionVideo");
+    $("label-show-video-tooltip").textContent = BL.t(lang, "options.showVideoTooltip");
+    $("label-video-click1").textContent = BL.t(lang, "options.click1");
+    $("label-video-click2").textContent = BL.t(lang, "options.click2");
+    $("label-video-click3").textContent = BL.t(lang, "options.click3");
+    $("label-video-tooltip-actions").textContent = BL.t(lang, "options.videoTooltipActions");
     $("label-section-general").textContent = BL.t(lang, "options.sectionGeneral");
     $("label-fix-links").textContent = BL.t(lang, "options.fixLinks");
     $("fix-help").textContent = BL.t(lang, "options.fixLinksHelp");
@@ -89,6 +102,10 @@
     fillSelect($("click1"), choices("textClick", true), lang);
     fillSelect($("click2"), choices("textClick", true), lang);
     fillSelect($("click3"), choices("textClick", true), lang);
+    fillSelect($("multi-click1"), choices("multiClick", true), lang);
+    fillSelect($("multi-click2"), choices("multiClick", true), lang);
+    fillSelect($("multi-click3"), choices("multiClick", true), lang);
+    fillChecks("multi-tooltip-actions", choices("multiTooltip"), lang, settings.multiTooltipActions);
     fillSelect($("anchor-mode"), modes, lang);
     fillSelect($("anchor-click2"), choices("anchorClick"), lang);
     fillSelect($("anchor-click3"), choices("anchorClick"), lang);
@@ -97,6 +114,10 @@
     fillSelect($("image-click2"), choices("imageClick", true), lang);
     fillSelect($("image-click3"), choices("imageClick", true), lang);
     fillChecks("image-tooltip-actions", choices("imageTooltip"), lang, settings.imageTooltipActions);
+    fillSelect($("video-click1"), choices("videoClick", true), lang);
+    fillSelect($("video-click2"), choices("videoClick", true), lang);
+    fillSelect($("video-click3"), choices("videoClick", true), lang);
+    fillChecks("video-tooltip-actions", choices("videoTooltip"), lang, settings.videoTooltipActions);
     fillSelect($("language"), languages, lang);
   }
 
@@ -104,6 +125,14 @@
     const enabled = BL.anchorModeAppliesClicks($("anchor-mode").value);
     $("anchor-click2").disabled = !enabled;
     $("anchor-click3").disabled = !enabled;
+  }
+
+  function syncMultiFields() {
+    const enabled = $("multi-links").checked;
+    $("multi-click1").disabled = !enabled;
+    $("multi-click2").disabled = !enabled;
+    $("multi-click3").disabled = !enabled;
+    for (const input of $("multi-tooltip-actions").querySelectorAll("input")) input.disabled = !enabled;
   }
 
   function readForm() {
@@ -116,6 +145,11 @@
       click1: $("click1").value,
       click2: $("click2").value,
       click3: $("click3").value,
+      multiLinks: $("multi-links").checked,
+      multiClick1: $("multi-click1").value,
+      multiClick2: $("multi-click2").value,
+      multiClick3: $("multi-click3").value,
+      multiTooltipActions: selectedChecks("multi-tooltip-actions"),
       anchorMode: $("anchor-mode").value,
       anchorClick2: $("anchor-click2").value,
       anchorClick3: $("anchor-click3").value,
@@ -124,6 +158,11 @@
       imageClick2: $("image-click2").value,
       imageClick3: $("image-click3").value,
       imageTooltipActions: selectedChecks("image-tooltip-actions"),
+      showVideoTooltip: $("show-video-tooltip").checked,
+      videoClick1: $("video-click1").value,
+      videoClick2: $("video-click2").value,
+      videoClick3: $("video-click3").value,
+      videoTooltipActions: selectedChecks("video-tooltip-actions"),
       fixLinks: $("fix-links").checked,
       language: $("language").value,
     });
@@ -137,6 +176,7 @@
     $("click1").value = settings.click1;
     $("click2").value = settings.click2;
     $("click3").value = settings.click3;
+    $("multi-links").checked = settings.multiLinks;
     $("anchor-mode").value = settings.anchorMode;
     $("anchor-click2").value = settings.anchorClick2;
     $("anchor-click3").value = settings.anchorClick3;
@@ -144,20 +184,31 @@
     $("image-click1").value = settings.imageClick1;
     $("image-click2").value = settings.imageClick2;
     $("image-click3").value = settings.imageClick3;
+    $("show-video-tooltip").checked = settings.showVideoTooltip;
+    $("video-click1").value = settings.videoClick1;
+    $("video-click2").value = settings.videoClick2;
+    $("video-click3").value = settings.videoClick3;
     $("fix-links").checked = settings.fixLinks;
     $("language").value = settings.language;
     applyLabels();
     $("click1").value = settings.click1;
     $("click2").value = settings.click2;
     $("click3").value = settings.click3;
+    $("multi-click1").value = settings.multiClick1;
+    $("multi-click2").value = settings.multiClick2;
+    $("multi-click3").value = settings.multiClick3;
     $("anchor-mode").value = settings.anchorMode;
     $("anchor-click2").value = settings.anchorClick2;
     $("anchor-click3").value = settings.anchorClick3;
     $("image-click1").value = settings.imageClick1;
     $("image-click2").value = settings.imageClick2;
     $("image-click3").value = settings.imageClick3;
+    $("video-click1").value = settings.videoClick1;
+    $("video-click2").value = settings.videoClick2;
+    $("video-click3").value = settings.videoClick3;
     $("language").value = settings.language;
     syncAnchorFields();
+    syncMultiFields();
   }
 
   $("language").addEventListener("change", () => {
@@ -165,6 +216,10 @@
     const click1 = $("click1").value;
     const click2 = $("click2").value;
     const click3 = $("click3").value;
+    const multiClick1 = $("multi-click1").value;
+    const multiClick2 = $("multi-click2").value;
+    const multiClick3 = $("multi-click3").value;
+    settings.multiTooltipActions = selectedChecks("multi-tooltip-actions");
     const anchorMode = $("anchor-mode").value;
     const anchorClick2 = $("anchor-click2").value;
     const anchorClick3 = $("anchor-click3").value;
@@ -173,21 +228,33 @@
     const imageClick2 = $("image-click2").value;
     const imageClick3 = $("image-click3").value;
     settings.imageTooltipActions = selectedChecks("image-tooltip-actions");
+    const videoClick1 = $("video-click1").value;
+    const videoClick2 = $("video-click2").value;
+    const videoClick3 = $("video-click3").value;
+    settings.videoTooltipActions = selectedChecks("video-tooltip-actions");
     applyLabels();
     $("click1").value = click1;
     $("click2").value = click2;
     $("click3").value = click3;
+    $("multi-click1").value = multiClick1;
+    $("multi-click2").value = multiClick2;
+    $("multi-click3").value = multiClick3;
     $("anchor-mode").value = anchorMode;
     $("anchor-click2").value = anchorClick2;
     $("anchor-click3").value = anchorClick3;
     $("image-click1").value = imageClick1;
     $("image-click2").value = imageClick2;
     $("image-click3").value = imageClick3;
+    $("video-click1").value = videoClick1;
+    $("video-click2").value = videoClick2;
+    $("video-click3").value = videoClick3;
     $("language").value = settings.language;
     syncAnchorFields();
+    syncMultiFields();
   });
 
   $("anchor-mode").addEventListener("change", syncAnchorFields);
+  $("multi-links").addEventListener("change", syncMultiFields);
 
   function showTransfer(key, isError) {
     const status = $("transfer-status");

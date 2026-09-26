@@ -18,7 +18,17 @@
     imageClick2: "newTabAndSwitch",
     imageClick3: "copyImage",
     imageTooltipActions: ["newWindow", "newTab", "newTabAndSwitch", "copyImageLink", "copyImage", "saveImage"],
+    showVideoTooltip: true,
+    videoClick1: "none",
+    videoClick2: "newTabAndSwitch",
+    videoClick3: "copy",
+    videoTooltipActions: ["newWindow", "newTab", "newTabAndSwitch", "copy"],
     fixLinks: true,
+    multiLinks: true,
+    multiClick1: "none",
+    multiClick2: "openAllNewWindow",
+    multiClick3: "openAllCurrentWindow",
+    multiTooltipActions: ["openAllNewWindow", "openAllCurrentWindow", "copyLinks"],
     language: "auto",
   };
 
@@ -73,6 +83,24 @@
       : defaults.imageTooltipActions;
     settings.imageTooltipActions = BetterLinks.IMAGE_ACTIONS.filter((action) => rawImageActions.includes(action));
     settings.showImageTooltip = Boolean(settings.showImageTooltip);
+
+    if (!BetterLinks.VIDEO_CLICK_ACTIONS.includes(settings.videoClick1)) settings.videoClick1 = defaults.videoClick1;
+    if (!BetterLinks.VIDEO_CLICK_ACTIONS.includes(settings.videoClick2)) settings.videoClick2 = defaults.videoClick2;
+    if (!BetterLinks.VIDEO_CLICK_ACTIONS.includes(settings.videoClick3)) settings.videoClick3 = defaults.videoClick3;
+    const rawVideoActions = Array.isArray(source.videoTooltipActions)
+      ? source.videoTooltipActions
+      : defaults.videoTooltipActions;
+    settings.videoTooltipActions = BetterLinks.VIDEO_ACTIONS.filter((action) => rawVideoActions.includes(action));
+    settings.showVideoTooltip = Boolean(settings.showVideoTooltip);
+
+    settings.multiLinks = Boolean(settings.multiLinks);
+    if (!BetterLinks.MULTI_CLICK_ACTIONS.includes(settings.multiClick1)) settings.multiClick1 = defaults.multiClick1;
+    if (!BetterLinks.MULTI_CLICK_ACTIONS.includes(settings.multiClick2)) settings.multiClick2 = defaults.multiClick2;
+    if (!BetterLinks.MULTI_CLICK_ACTIONS.includes(settings.multiClick3)) settings.multiClick3 = defaults.multiClick3;
+    const rawMultiActions = Array.isArray(source.multiTooltipActions)
+      ? source.multiTooltipActions
+      : defaults.multiTooltipActions;
+    settings.multiTooltipActions = BetterLinks.MULTI_ACTIONS.filter((action) => rawMultiActions.includes(action));
 
     settings.showTooltip = Boolean(settings.showTooltip);
     settings.tooltipOnLinks = hasTooltipOnLinks ? Boolean(source.tooltipOnLinks) : !legacyHidden;

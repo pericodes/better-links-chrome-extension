@@ -24,6 +24,20 @@
     }
   }
 
+  function openAll(urls, spec) {
+    const message = { type: "openAll", mode: spec.mode, urls: urls };
+    const fallback = () => {
+      for (const url of urls) window.open(url, "_blank", "noopener,noreferrer");
+    };
+    try {
+      chrome.runtime.sendMessage(message, () => {
+        if (chrome.runtime.lastError) fallback();
+      });
+    } catch {
+      fallback();
+    }
+  }
+
   function openUrl(url, spec) {
     const message = { type: "open", mode: spec.mode, url: url };
     if (spec.active === false) message.active = false;
@@ -40,9 +54,24 @@
     }
   }
 
+  function linkList(url) {
+    return (Array.isArray(url) ? url : [url]).filter((item) => BetterLinks.isHttpUrl(item));
+  }
+
   BetterLinks.runLinkAction = function runLinkAction(id, url) {
     const spec = BetterLinks.ACTIONS[id];
-    if (!url || !spec) return;
+    if (!spec) return;
+    if (spec.kind === "copyLinks") {
+      const list = linkList(url);
+      if (list.length) copyUrl(list.join("\n"));
+      return;
+    }
+    if (spec.kind === "openAll") {
+      const list = linkList(url);
+      if (list.length) openAll(list, spec);
+      return;
+    }
+    if (!url || Array.isArray(url)) return;
     if (spec.kind === "copyLink") {
       copyUrl(url);
       return;

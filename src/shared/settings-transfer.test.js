@@ -28,6 +28,25 @@ test("imports an old file without resetting newer settings", () => {
   assert.equal(Object.hasOwn(next, "unknownFuture"), false);
 });
 
+test("multi-link settings keep defaults and drop unknown actions", () => {
+  const { normalizeSettings } = globalThis.BetterLinks;
+  const fresh = normalizeSettings({ click1: "copy" });
+  assert.equal(fresh.multiLinks, true);
+  assert.equal(fresh.multiClick1, "none");
+  assert.equal(fresh.multiClick2, "openAllNewWindow");
+  assert.equal(fresh.multiClick3, "openAllCurrentWindow");
+  assert.deepEqual(fresh.multiTooltipActions, ["openAllNewWindow", "openAllCurrentWindow", "copyLinks"]);
+
+  const next = normalizeSettings({
+    multiLinks: false,
+    multiClick2: "not-an-action",
+    multiTooltipActions: ["copyLinks", "nope"],
+  });
+  assert.equal(next.multiLinks, false);
+  assert.equal(next.multiClick2, "openAllNewWindow");
+  assert.deepEqual(next.multiTooltipActions, ["copyLinks"]);
+});
+
 test("rejects a file with no recognized options", () => {
   assert.equal(settingsFromFile(DEFAULTS, { notASetting: 1 }), null);
   assert.equal(settingsFromFile(DEFAULTS, null), null);

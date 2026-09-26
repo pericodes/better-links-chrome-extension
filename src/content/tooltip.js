@@ -18,7 +18,7 @@
   function labelKey(action, target) {
     const spec = BetterLinks.ACTIONS[action];
     if (!spec) return "";
-    const surface = target === "image" ? "imageTooltip" : "tooltip";
+    const surface = target === "image" ? "imageTooltip" : target === "video" ? "videoTooltip" : target === "links" ? "multiTooltip" : "tooltip";
     return spec.surfaces[surface] || "";
   }
 
@@ -87,7 +87,7 @@
     tip.addEventListener("mouseover", () => window.clearTimeout(hideTimer));
     tip.addEventListener("mouseout", (event) => {
       const kind = tip.dataset.kind;
-      if (kind !== "anchor" && kind !== "image" && kind !== "both") return;
+      if (kind !== "anchor" && kind !== "image" && kind !== "both" && kind !== "video" && kind !== "video+anchor") return;
       const next = event.relatedTarget;
       if (next && (next === tip || tip.contains(next))) return;
       BetterLinks.tooltip.scheduleHide();
@@ -107,7 +107,7 @@
         button.type = "button";
         button.dataset.action = action;
         button.dataset.target = group.target;
-        button.dataset.url = group.url;
+        button.dataset.url = group.urls ? JSON.stringify(group.urls) : group.url;
         button.textContent = t(key);
         row.appendChild(button);
       }
