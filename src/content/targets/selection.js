@@ -94,25 +94,20 @@
   };
 
   function innerTextLines(fragment) {
-    if (typeof document === "undefined" || !document.createElement) return [];
-    const holder = document.createElement("div");
-    holder.setAttribute(
-      "style",
-      "position:fixed;left:0;top:0;opacity:0;pointer-events:none;width:max-content;max-width:none;white-space:pre;"
-    );
-    const parent = document.body || document.documentElement;
-    if (!parent) return [];
+    if (typeof document === "undefined" || !document.implementation || !document.implementation.createHTMLDocument) {
+      return [];
+    }
     try {
-      holder.appendChild(fragment);
-      parent.appendChild(holder);
+      const doc = document.implementation.createHTMLDocument("");
+      const holder = doc.createElement("div");
+      holder.appendChild(doc.importNode(fragment, true));
+      doc.body.appendChild(holder);
       return String(holder.innerText || "")
         .split(/\n/)
         .map((line) => line.trim())
         .filter(Boolean);
     } catch {
       return [];
-    } finally {
-      holder.remove();
     }
   }
 

@@ -55,7 +55,10 @@
   function selectionUrlForTab(tabId) {
     let found = "";
     for (const text of BetterLinks.frames.textsForTab(tabId)) {
-      const url = BetterLinks.resolveTextLink(text, settings().fixLinks);
+      const url = BetterLinks.applyLinkCorrectors(
+        text,
+        BetterLinks.activeCorrectors(settings().linkCorrectors, settings().fixLinks)
+      );
       if (url) found = url;
     }
     return found;
@@ -147,7 +150,10 @@
       return;
     }
 
-    const url = BetterLinks.resolveTextLink(text, settings().fixLinks);
+    const url = BetterLinks.applyLinkCorrectors(
+      text,
+      BetterLinks.activeCorrectors(settings().linkCorrectors, settings().fixLinks)
+    );
     if (!url || !BetterLinks.isSafeHttpUrl(url) || !item.action) return;
     BetterLinks.openFromAction(item.action, url, tab);
   });

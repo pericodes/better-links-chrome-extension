@@ -48,10 +48,14 @@
   function urlsFromField(text) {
     const settings = getSettings();
     if (!settings.multiLinks) {
-      const url = BetterLinks.resolveTextLink(text, settings.fixLinks);
+      const url = BetterLinks.applyLinkCorrectors(text, BetterLinks.activeCorrectors(settings.linkCorrectors, settings.fixLinks));
       return url ? [url] : [];
     }
-    return BetterLinks.resolveTextFragments(String(text == null ? "" : text).split(/\r?\n/), settings.fixLinks);
+    return BetterLinks.resolveTextFragments(
+      String(text == null ? "" : text).split(/\r?\n/),
+      settings.fixLinks,
+      settings.linkCorrectors
+    );
   }
 
   function describeFragment(node, depth, budget) {
@@ -90,7 +94,7 @@
       return [];
     }
     if (!settings.multiLinks) {
-      const url = BetterLinks.resolveTextLink(text, settings.fixLinks);
+      const url = BetterLinks.applyLinkCorrectors(text, BetterLinks.activeCorrectors(settings.linkCorrectors, settings.fixLinks));
       if (debug) {
         console.group("Better Links: selección");
         console.log("varios enlaces desactivado");
@@ -115,7 +119,7 @@
       }
     }
     groups.forEach((lines, index) => {
-      const urls = BetterLinks.resolveTextFragments(lines, settings.fixLinks);
+      const urls = BetterLinks.resolveTextFragments(lines, settings.fixLinks, settings.linkCorrectors);
       if (debug) console.log(labels[index] || "grupo " + index, { lineas: lines, enlaces: urls });
       if (urls.length > best.length) {
         best = urls;
@@ -352,8 +356,8 @@
       return;
     }
 
-    const urls = urlsFromSelection(selection, true);
     const rect = BetterLinks.selectionRect();
+    const urls = urlsFromSelection(selection, true);
     if (!rect) console.log("Better Links: la selección no tiene rectángulo visible");
     if (!urls.length || !rect) {
       disarmSelection();

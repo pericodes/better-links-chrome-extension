@@ -93,6 +93,15 @@
     $("label-section-general").textContent = BL.t(lang, "options.sectionGeneral");
     $("label-fix-links").textContent = BL.t(lang, "options.fixLinks");
     $("fix-help").textContent = BL.t(lang, "options.fixLinksHelp");
+    $("tab-options").textContent = BL.t(lang, "options.tabOptions");
+    $("tab-correctors").textContent = BL.t(lang, "options.tabCorrectors");
+    $("label-section-correctors").textContent = BL.t(lang, "options.sectionCorrectors");
+    $("correctors-help").textContent = BL.t(lang, "options.correctorsHelp");
+    $("label-corrector-try").textContent = BL.t(lang, "options.correctorTry");
+    $("corrector-try-run").textContent = BL.t(lang, "options.correctorTryRun");
+    $("add-corrector").textContent = BL.t(lang, "options.correctorAdd");
+    $("export-correctors").textContent = BL.t(lang, "options.correctorExport");
+    $("import-correctors").textContent = BL.t(lang, "options.correctorImport");
     $("label-language").textContent = BL.t(lang, "options.language");
     $("label-section-backup").textContent = BL.t(lang, "options.sectionBackup");
     $("backup-help").textContent = BL.t(lang, "options.backupHelp");
@@ -164,6 +173,7 @@
       videoClick3: $("video-click3").value,
       videoTooltipActions: selectedChecks("video-tooltip-actions"),
       fixLinks: $("fix-links").checked,
+      linkCorrectors: readCorrectorsFromDom(),
       language: $("language").value,
     });
   }
@@ -191,6 +201,7 @@
     $("fix-links").checked = settings.fixLinks;
     $("language").value = settings.language;
     applyLabels();
+    renderCorrectors(settings.linkCorrectors);
     $("click1").value = settings.click1;
     $("click2").value = settings.click2;
     $("click3").value = settings.click3;
@@ -210,6 +221,263 @@
     syncAnchorFields();
     syncMultiFields();
   }
+
+  function readCorrectorsFromDom() {
+    return [...$("link-correctors").querySelectorAll(".corrector")].map((card) => ({
+      id: card.dataset.id,
+      name: card.querySelector(".name").value,
+      notes: card.querySelector(".notes").value,
+      code: card.querySelector(".code").value,
+      enabled: card.querySelector(".enabled").checked,
+    }));
+  }
+
+  function renderCorrectors(list) {
+    const lang = BL.resolveLanguage(settings.language);
+    const box = $("link-correctors");
+    box.replaceChildren();
+    list.forEach((item, index) => {
+      const card = document.createElement("article");
+      card.className = "corrector";
+      card.dataset.id = item.id;
+
+      const head = document.createElement("div");
+      head.className = "corrector-head";
+      const priority = document.createElement("span");
+      priority.className = "priority";
+      priority.textContent = String(index + 1);
+      const active = document.createElement("label");
+      active.className = "check";
+      const enabled = document.createElement("input");
+      enabled.className = "enabled";
+      enabled.type = "checkbox";
+      enabled.checked = item.enabled !== false;
+      const enabledText = document.createElement("span");
+      enabledText.textContent = BL.t(lang, "options.correctorEnabled");
+      active.append(enabled, enabledText);
+      const name = document.createElement("input");
+      name.className = "name";
+      name.type = "text";
+      name.value = item.name;
+      name.setAttribute("aria-label", BL.t(lang, "options.correctorName"));
+      const actions = document.createElement("div");
+      actions.className = "row-actions";
+      actions.append(moveButton("up", lang, index === 0), moveButton("down", lang, index === list.length - 1), moveButton("delete", lang, false));
+      head.append(priority, active, name, actions);
+
+      const notesLabel = document.createElement("span");
+      notesLabel.className = "group-label";
+      notesLabel.textContent = BL.t(lang, "options.correctorNotes");
+      const notes = document.createElement("textarea");
+      notes.className = "notes";
+      notes.rows = 2;
+      notes.value = item.notes;
+
+      const codeLabel = document.createElement("span");
+      codeLabel.className = "group-label";
+      codeLabel.textContent = BL.t(lang, "options.correctorCode");
+      const code = document.createElement("textarea");
+      code.className = "code";
+      code.rows = 8;
+      code.spellcheck = false;
+      code.value = item.code;
+
+      card.append(head, notesLabel, notes, codeLabel, code);
+      box.appendChild(card);
+    });
+  }
+
+  function moveButton(act, lang, disabled) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ghost";
+    button.dataset.act = act;
+    const key = act === "up" ? "options.correctorUp" : act === "down" ? "options.correctorDown" : "options.correctorDelete";
+    button.textContent = BL.t(lang, key);
+    button.disabled = disabled;
+    return button;
+  }
+
+  $("link-correctors").addEventListener("click", (event) => {
+    const button = event.target.closest("button");
+    if (!button || !button.dataset.act) return;
+    const list = readCorrectorsFromDom();
+    const card = button.closest(".corrector");
+    const index = list.findIndex((item) => item.id === card.dataset.id);
+    if (index < 0) return;
+    if (button.dataset.act === "delete") list.splice(index, 1);
+    if (button.dataset.act === "up" && index > 0) {
+      const previous = list[index - 1];
+      list[index - 1] = list[index];
+      list[index] = previous;
+    }
+    if (button.dataset.act === "down" && index < list.length - 1) {
+      const next = list[index + 1];
+      list[index + 1] = list[index];
+      list[index] = next;
+    }
+    settings.linkCorrectors = list;
+    renderCorrectors(list);
+  });
+
+  $("add-corrector").addEventListener("click", () => {
+    const list = readCorrectorsFromDom();
+    list.push({
+      id: "user-" + Math.random().toString(36).slice(2, 10),
+      name: "",
+      notes: "",
+      code: "return '';",
+      enabled: true,
+    });
+    settings.linkCorrectors = list;
+    renderCorrectors(list);
+  });
+
+  function showTab(name) {
+    const options = name === "options";
+    $("panel-options").hidden = !options;
+    $("panel-correctors").hidden = options;
+    $("tab-options").setAttribute("aria-selected", options ? "true" : "false");
+    $("tab-correctors").setAttribute("aria-selected", options ? "false" : "true");
+  }
+
+  const sandboxFrame = document.createElement("iframe");
+  sandboxFrame.hidden = true;
+  sandboxFrame.tabIndex = -1;
+  sandboxFrame.setAttribute("aria-hidden", "true");
+  let sandboxReady = false;
+  sandboxFrame.addEventListener("load", () => {
+    sandboxReady = true;
+  });
+  sandboxFrame.src = "sandbox.html";
+  document.body.appendChild(sandboxFrame);
+
+  function runSandboxed(code, text) {
+    return new Promise((resolve) => {
+      const id = "c" + Math.random().toString(36).slice(2);
+      const timer = window.setTimeout(() => finish({ failed: true }), 1500);
+      function finish(result) {
+        window.clearTimeout(timer);
+        window.removeEventListener("message", onMessage);
+        resolve(result);
+      }
+      function onMessage(event) {
+        if (event.source !== sandboxFrame.contentWindow) return;
+        const data = event.data;
+        if (!data || data.id !== id) return;
+        if (data.error) finish({ failed: true });
+        else finish({ value: typeof data.text === "string" ? data.text : "" });
+      }
+      window.addEventListener("message", onMessage);
+      const send = () => sandboxFrame.contentWindow.postMessage({ id: id, code: code, text: text }, "*");
+      if (sandboxReady) send();
+      else sandboxFrame.addEventListener("load", send, { once: true });
+    });
+  }
+
+  async function tryCorrector() {
+    const lang = BL.resolveLanguage(settings.language);
+    const sample = $("corrector-try").value;
+    const list = BL.activeCorrectors(readCorrectorsFromDom(), $("fix-links").checked);
+    const steps = [];
+    let winner = null;
+    let stopped = false;
+    for (const item of list) {
+      const id = item && item.id;
+      if (stopped || !item || item.enabled === false || typeof item.code !== "string" || !item.code.trim()) {
+        steps.push({ id: id, status: "skipped" });
+        continue;
+      }
+      let outcome = BL.executeCorrector(item, sample);
+      if (outcome.blocked) outcome = await runSandboxed(item.code, sample);
+      if (outcome.failed) {
+        steps.push({ id: id, status: "fail" });
+        continue;
+      }
+      const candidate = String(outcome.value || "").trim();
+      if (!BL.isHttpUrl(candidate)) {
+        steps.push({ id: id, status: "fail" });
+        continue;
+      }
+      steps.push({ id: id, status: "pass" });
+      winner = { id: id, name: typeof item.name === "string" ? item.name : "", text: candidate };
+      stopped = true;
+    }
+    const byId = new Map(steps.map((step) => [step.id, step.status]));
+    for (const card of $("link-correctors").querySelectorAll(".corrector")) {
+      card.classList.remove("pass", "fail");
+      const status = byId.get(card.dataset.id);
+      if (status === "pass" || status === "fail") card.classList.add(status);
+    }
+    const result = $("corrector-try-result");
+    result.hidden = false;
+    result.classList.toggle("ok", Boolean(winner));
+    result.classList.toggle("bad", !winner);
+    result.textContent = winner ? winner.text : BL.t(lang, "options.correctorTryFail");
+  }
+
+  $("corrector-try-run").addEventListener("click", tryCorrector);
+  $("corrector-try").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") tryCorrector();
+  });
+
+  $("tab-options").addEventListener("click", () => showTab("options"));
+  $("tab-correctors").addEventListener("click", () => showTab("correctors"));
+
+  function showCorrectorStatus(key, isError) {
+    const status = $("correctors-status");
+    status.hidden = false;
+    status.classList.toggle("error", Boolean(isError));
+    status.textContent = BL.t(BL.resolveLanguage(settings.language), key);
+    window.setTimeout(() => {
+      status.hidden = true;
+    }, 1600);
+  }
+
+  $("export-correctors").addEventListener("click", () => {
+    const file = new Blob([JSON.stringify(readCorrectorsFromDom(), null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "better-links-correctors.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  $("import-correctors").addEventListener("click", () => {
+    $("import-correctors-file").value = "";
+    $("import-correctors-file").click();
+  });
+
+  $("import-correctors-file").addEventListener("change", () => {
+    const file = $("import-correctors-file").files && $("import-correctors-file").files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let parsed;
+      try {
+        parsed = JSON.parse(String(reader.result || ""));
+      } catch {
+        showCorrectorStatus("options.correctorImportError", true);
+        return;
+      }
+      const raw = Array.isArray(parsed) ? parsed : parsed && parsed.linkCorrectors;
+      if (!Array.isArray(raw)) {
+        showCorrectorStatus("options.correctorImportEmpty", true);
+        return;
+      }
+      const list = BL.normalizeLinkCorrectors(raw, settings.language);
+      settings.linkCorrectors = list;
+      renderCorrectors(list);
+      const next = readForm();
+      chrome.storage.sync.set(next, () => {
+        settings = next;
+        showCorrectorStatus("options.correctorImported", false);
+      });
+    };
+    reader.onerror = () => showCorrectorStatus("options.correctorImportError", true);
+    reader.readAsText(file);
+  });
 
   $("language").addEventListener("change", () => {
     settings.language = $("language").value;
@@ -232,7 +500,9 @@
     const videoClick2 = $("video-click2").value;
     const videoClick3 = $("video-click3").value;
     settings.videoTooltipActions = selectedChecks("video-tooltip-actions");
+    settings.linkCorrectors = readCorrectorsFromDom();
     applyLabels();
+    renderCorrectors(settings.linkCorrectors);
     $("click1").value = click1;
     $("click2").value = click2;
     $("click3").value = click3;

@@ -21,6 +21,24 @@ h1 {
   font-size: 1.6rem;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+button.tab {
+  background: transparent;
+  color: inherit;
+  border: 1px solid #d1d5db;
+}
+
+button.tab[aria-selected="true"] {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
 section {
   background: #fff;
   border: 1px solid #e5e7eb;
@@ -82,6 +100,78 @@ input[type="number"] {
   background: #fff;
 }
 
+.correctors {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.corrector {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.corrector.pass { border-color: #16a34a; }
+.corrector.fail { border-color: #dc2626; }
+
+#corrector-try {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+}
+
+#corrector-try-result {
+  margin: 12px 0 0;
+  font-size: 0.92rem;
+  word-break: break-all;
+}
+
+#corrector-try-result.ok { color: #16a34a; }
+#corrector-try-result.bad { color: #dc2626; }
+
+.corrector-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.corrector-head input {
+  flex: 1;
+  min-width: 0;
+}
+
+.priority {
+  min-width: 1.5rem;
+  font-weight: 600;
+}
+
+.corrector textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  font: inherit;
+}
+
+.corrector textarea.code {
+  min-height: 9rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+}
+
+.corrector .row-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .help {
   margin: 8px 0 0;
   color: #4b5563;
@@ -97,6 +187,10 @@ input[type="number"] {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+#panel-correctors .actions {
+  margin-top: 20px;
 }
 
 button {
@@ -124,8 +218,13 @@ button.ghost:hover { background: #eff6ff; }
 @media (prefers-color-scheme: dark) {
   body { background: #0f172a; color: #e5e7eb; }
   section { background: #111827; border-color: #1f2937; }
-  select, input[type="number"] { background: #0f172a; color: inherit; border-color: #374151; }
+  select, input[type="number"], #corrector-try, .corrector, .corrector textarea { background: #0f172a; color: inherit; border-color: #374151; }
+  .corrector.pass { border-color: #4ade80; }
+  .corrector.fail { border-color: #f87171; }
+  #corrector-try-result.ok { color: #4ade80; }
+  #corrector-try-result.bad { color: #f87171; }
   .help { color: #9ca3af; }
+  button.tab { border-color: #374151; }
   button.ghost { color: #93c5fd; border-color: #1d4ed8; }
   button.ghost:hover { background: #1e293b; }
   .saved.error { color: #fca5a5; }

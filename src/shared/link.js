@@ -57,13 +57,16 @@
       .replace(/^(?:[-*•·▪◦]|\d+[.)])\s+/, "");
   }
 
-  BetterLinks.resolveTextFragments = function resolveTextFragments(fragments, fixLinks) {
+  BetterLinks.resolveTextFragments = function resolveTextFragments(fragments, fixLinks, correctors) {
     const urls = [];
     const list = Array.isArray(fragments) ? fragments : [fragments];
     for (const fragment of list) {
       const lines = String(fragment == null ? "" : fragment).split(/\r?\n/);
       for (const line of lines) {
-        const url = BetterLinks.resolveTextLink(stripListMarker(line), fixLinks);
+        const piece = stripListMarker(line);
+        const url = Array.isArray(correctors)
+          ? BetterLinks.applyLinkCorrectors(piece, BetterLinks.activeCorrectors(correctors, fixLinks))
+          : BetterLinks.resolveTextLink(piece, fixLinks);
         if (url) urls.push(url);
       }
     }

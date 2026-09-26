@@ -29,6 +29,7 @@
     multiClick2: "openAllNewWindow",
     multiClick3: "openAllCurrentWindow",
     multiTooltipActions: ["openAllNewWindow", "openAllCurrentWindow", "copyLinks"],
+    linkCorrectors: null,
     language: "auto",
   };
 
@@ -116,6 +117,10 @@
     }
     settings.tooltipDelayInMs = true;
     settings.fixLinks = Boolean(settings.fixLinks);
+    settings.linkCorrectors = BetterLinks.normalizeLinkCorrectors(
+      Array.isArray(source.linkCorrectors) ? source.linkCorrectors : null,
+      settings.language
+    );
     return settings;
   };
 

@@ -2,6 +2,7 @@ importScripts(
   chrome.runtime.getURL("shared/defaults.js"),
   chrome.runtime.getURL("shared/link.js"),
   chrome.runtime.getURL("shared/i18n.js"),
+  chrome.runtime.getURL("shared/correctors.js"),
   chrome.runtime.getURL("shared/actions.js"),
   chrome.runtime.getURL("background/frames.js"),
   chrome.runtime.getURL("background/open.js"),

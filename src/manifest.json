@@ -26,12 +26,16 @@
     "page": "options/options.html",
     "open_in_tab": true
   },
+  "sandbox": {
+    "pages": ["options/sandbox.html"]
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": [
         "shared/defaults.js",
         "shared/link.js",
+        "shared/correctors.js",
         "shared/video.js",
         "shared/i18n.js",
         "shared/actions.js",

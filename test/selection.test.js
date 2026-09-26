@@ -3,34 +3,39 @@ const test = require("node:test");
 const { load } = require("./support/load");
 const { parseHtml } = require("./support/html");
 
-load("src/shared/link.js", "src/content/targets/selection.js");
+load(
+  "src/shared/link.js",
+  "src/shared/i18n.js",
+  "src/shared/correctors.js",
+  "src/content/targets/selection.js"
+);
 
-const { linesFromNodes, resolveTextFragments } = globalThis.BetterLinks;
+const { linesFromNodes, resolveTextFragments, defaultLinkCorrectors } = globalThis.BetterLinks;
 
 // Líneas tal como aparecen en el paste de la captura, sin inventar direcciones.
 const PASTE_LINES = [
   "Owo",
   "File !Pics & ViDs :",
-  "https://bunkr.is/a/V919Dpti",
-  "https://bunkr.is/a/KKh1SZe6",
-  "https://bunkr.is/a/ACBi5J44",
+  "https://site.com/a/V919Dpti",
+  "https://site.com/a/KKh1SZe6",
+  "https://site.com/a/ACBi5J44",
   "",
   "ViDs : https://cyberdrop.me/a/40oFSGfd",
   "Pics : https://cyberdrop.me/a/Bqe03XWv",
-  "Bj ViD : https://bunkr.is/a/HoR9JWci",
+  "Bj ViD : https://site.com/a/HoR9JWci",
   "",
   "",
   "",
   "",
-  "https://bunkr.is/a/cf6LgJGo",
+  "https://site.com/a/cf6LgJGo",
   "https://theleaknetwork.com/files/hannahowo",
-  "https://gofile.io/d/FNRDYD",
-  "https://gofile.io/d/w4hnPe",
+  "https://site.com/d/FNRDYD",
+  "https://site.com/d/w4hnPe",
   "https://cyberdrop.me/a/ouycxEym",
   "https://putme.ga/album/hannahowo-full.ybnRY",
   "",
   "",
-  "https://gofile.io/d/ocnydH",
+  "https://site.com/d/ocnydH",
   "https://cyberdrop.me/a/0i7459QP",
   "Telegram chanel : https://t.me/joinchat/j0Iz3uxoYywwYzI0",
 ];
@@ -52,7 +57,7 @@ function pastebinHtml(lines) {
 }
 
 function linksIn(html) {
-  return resolveTextFragments(linesFromNodes(parseHtml(html)), true);
+  return resolveTextFragments(linesFromNodes(parseHtml(html)), true, defaultLinkCorrectors("en"));
 }
 
 test("reads each Pastebin line as its own link when lines are separate elements", () => {
@@ -66,6 +71,6 @@ test("reads the same paste when each address is separated by br", () => {
 
 test("keeps a highlighted address in one line when span and b wrap parts of it", () => {
   const html =
-    '<li class="li1"><div class="de1"><span class="syn">https</span>://<b>bunkr.is</b>/a/cf6LgJGo</div></li>';
-  assert.deepEqual(linksIn(html), ["https://bunkr.is/a/cf6LgJGo"]);
+    '<li class="li1"><div class="de1"><span class="syn">https</span>://<b>site.com</b>/a/cf6LgJGo</div></li>';
+  assert.deepEqual(linksIn(html), ["https://site.com/a/cf6LgJGo"]);
 });

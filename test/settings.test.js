@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const { load } = require("./support/load");
 
-load("src/shared/actions.js", "src/shared/defaults.js");
+load("src/shared/link.js", "src/shared/i18n.js", "src/shared/correctors.js", "src/shared/actions.js", "src/shared/defaults.js");
 
 const { DEFAULTS, settingsForExport, settingsFromFile, normalizeSettings } = globalThis.BetterLinks;
 
