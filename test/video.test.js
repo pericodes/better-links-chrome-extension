@@ -1,9 +1,8 @@
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
 const test = require("node:test");
+const { load } = require("./support/load");
 
-eval(fs.readFileSync(path.join(__dirname, "video.js"), "utf8"));
+load("src/shared/video.js");
 
 const { canonicalPlayerUrl } = globalThis.BetterLinks;
 
@@ -16,10 +15,7 @@ test("rewrites YouTube pages to the watch url", () => {
     canonicalPlayerUrl("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?start=10"),
     "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
   );
-  assert.equal(
-    canonicalPlayerUrl("https://youtu.be/dQw4w9WgXcQ"),
-    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-  );
+  assert.equal(canonicalPlayerUrl("https://youtu.be/dQw4w9WgXcQ"), "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
   assert.equal(
     canonicalPlayerUrl("https://www.youtube.com/shorts/dQw4w9WgXcQ"),
     "https://www.youtube.com/watch?v=dQw4w9WgXcQ"

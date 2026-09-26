@@ -1,12 +1,10 @@
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
 const test = require("node:test");
+const { load } = require("./support/load");
 
-eval(fs.readFileSync(path.join(__dirname, "actions.js"), "utf8"));
-eval(fs.readFileSync(path.join(__dirname, "defaults.js"), "utf8"));
+load("src/shared/actions.js", "src/shared/defaults.js");
 
-const { DEFAULTS, settingsForExport, settingsFromFile } = globalThis.BetterLinks;
+const { DEFAULTS, settingsForExport, settingsFromFile, normalizeSettings } = globalThis.BetterLinks;
 
 test("exports only known settings", () => {
   const file = settingsForExport(Object.assign({}, DEFAULTS, { click1: "copy", extra: "ignore-me" }));
@@ -29,7 +27,6 @@ test("imports an old file without resetting newer settings", () => {
 });
 
 test("multi-link settings keep defaults and drop unknown actions", () => {
-  const { normalizeSettings } = globalThis.BetterLinks;
   const fresh = normalizeSettings({ click1: "copy" });
   assert.equal(fresh.multiLinks, true);
   assert.equal(fresh.multiClick1, "none");

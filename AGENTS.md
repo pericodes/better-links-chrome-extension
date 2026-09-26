@@ -106,11 +106,17 @@ Only `http:` and `https:` may be opened, copied as a navigation target, or downl
 
 ## Checks
 
+After every code change, run the tests and do not finish while any test fails:
+
 ```bash
-node --test src/shared/link.test.js
+npm test
 ```
 
-[`src/shared/link.test.js`](src/shared/link.test.js) evals `link.js` in Node. Keep URL repair and rejection cases there (`javascript:`, normal words, broken protocols with `fixLinks` on and off). DOM, tooltip, and menu behavior cannot be covered by that test; after a UI or gesture change, reload the extension and try selected text, an `<a>`, an `<img>`, an image wrapped in a link, clicks 1/2/3, and the context menu.
+That runs every `*.test.js` file in [`test/`](test/). Use real cases: real URLs, real page markup, and the broken links a person actually selects. Do not invent inputs whose only purpose is to match the current code.
+
+When you add or change behavior, add or update the tests in `test/` in the same change. URL repair and rejection stay in [`test/link.test.js`](test/link.test.js). Several links in one selection stay in [`test/selection.test.js`](test/selection.test.js).
+
+Tooltip, clicks, and the context menu still need a reload in `chrome://extensions`: try selected text, an `<a>`, an `<img>`, an image wrapped in a link, clicks 1/2/3, and the context menu.
 
 ## Leave alone unless the task asks
 
