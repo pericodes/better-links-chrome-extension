@@ -11,7 +11,7 @@ Three isolated worlds. Do not put DOM code in the service worker, and do not cal
 | Runtime | Entry | Can use |
 |---|---|---|
 | Content script | `src/content/content.js` | DOM, selection, tooltip, `navigator.clipboard` |
-| Service worker | `src/background/service-worker.js` | tabs, windows, downloads, context menus |
+| Service worker | `src/background/service-worker.js` | tabs, windows, downloads, context menus, scripting |
 | Options page | `src/options/options.js` | the settings form |
 
 Privileged work crosses the boundary with `chrome.runtime.sendMessage`.
@@ -29,9 +29,9 @@ Content scripts cannot use `import`. Every shared file is a classic IIFE that at
 
 Load order is the dependency order. A file may call another file's functions only after that file has been listed earlier.
 
-Content scripts, in [`src/manifest.json`](src/manifest.json), in this order: `shared/defaults.js`, `shared/link.js`, `shared/i18n.js`, `shared/actions.js`, `content/targets/*.js`, `content/actions/*.js`, `content/tooltip.js`, `content/gestures.js`, `content/content.js`.
+Content scripts are not listed in the manifest. [`src/background/inject.js`](src/background/inject.js) holds `BetterLinks.contentScriptFiles`, in this order: `shared/defaults.js`, `shared/link.js`, `shared/correctors.js`, `shared/video.js`, `shared/i18n.js`, `shared/actions.js`, `content/targets/*.js`, `content/actions/*.js`, `content/tooltip.js`, `content/gestures.js`, `content/content.js`. The service worker registers that list with `chrome.scripting` after the user grants `BetterLinks.HOST_ORIGINS` from [`src/shared/hosts.js`](src/shared/hosts.js).
 
-The service worker `importScripts` those shared files plus `background/frames.js`, `background/open.js`, `background/image.js`, and `background/context-menu.js`, using `chrome.runtime.getURL` so the paths stay relative to `src/`. The options page loads `defaults.js`, `i18n.js`, and `actions.js` from [`src/options/options.html`](src/options/options.html).
+The service worker `importScripts` those shared files plus `shared/hosts.js`, `background/frames.js`, `background/open.js`, `background/image.js`, `background/context-menu.js`, and `background/inject.js`, using `chrome.runtime.getURL` so the paths stay relative to `src/`. The options page loads `hosts.js`, `defaults.js`, `i18n.js`, and `actions.js` from [`src/options/options.html`](src/options/options.html).
 
 When you add a shared file, register it in every runtime that calls it, before any file that uses it.
 
@@ -99,7 +99,7 @@ Only `http:` and `https:` may be opened, copied as a navigation target, or downl
 
 ## Adding a feature
 
-1. **Another element kind** (for example video): add `src/content/targets/video.js`, return it from `resolve.js`, and list the file in the manifest before `resolve.js`. Thread it through `gestures.js` and the `contextmenu` report. Do not bury the check inside an action.
+1. **Another element kind** (for example video): add `src/content/targets/video.js`, return it from `resolve.js`, and list the file in `BetterLinks.contentScriptFiles` before `resolve.js`. Thread it through `gestures.js` and the `contextmenu` report. Do not bury the check inside an action.
 2. **Another action**: add one entry in `src/shared/actions.js` and the label keys in `i18n.js`. Options and `normalizeSettings` pick it up from the catalog. Implement a new `kind` only if it is not `open`, `copyLink`, `copyImage`, or `saveImage`. Privileged work goes in `background/` behind a message `type`, dispatched from `service-worker.js`.
 3. **Another tooltip row**: pass another group of catalog ids into `tooltip.schedule`. Do not special-case the shadow DOM.
 4. **Another context-menu item**: add a row in `context-menu.js` that points at an action id. Perform the click with `openFromAction`. Titles refresh from `storage.onChanged`.
@@ -116,7 +116,7 @@ That runs every `*.test.js` file in [`test/`](test/). Use real cases: real URLs,
 
 When you add or change behavior, add or update the tests in `test/` in the same change. URL repair and rejection stay in [`test/link.test.js`](test/link.test.js). Several links in one selection stay in [`test/selection.test.js`](test/selection.test.js).
 
-Tooltip, clicks, and the context menu still need a reload in `chrome://extensions`: try selected text, an `<a>`, an `<img>`, an image wrapped in a link, clicks 1/2/3, and the context menu.
+Tooltip, clicks, and the context menu still need a reload in `chrome://extensions`. Open the options page once and allow http and https access, then reload open tabs. Try selected text, an `<a>`, an `<img>`, an image wrapped in a link, clicks 1/2/3, and the context menu.
 
 ## Leave alone unless the task asks
 

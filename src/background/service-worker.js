@@ -4,10 +4,12 @@ importScripts(
   chrome.runtime.getURL("shared/i18n.js"),
   chrome.runtime.getURL("shared/correctors.js"),
   chrome.runtime.getURL("shared/actions.js"),
+  chrome.runtime.getURL("shared/hosts.js"),
   chrome.runtime.getURL("background/frames.js"),
   chrome.runtime.getURL("background/open.js"),
   chrome.runtime.getURL("background/image.js"),
-  chrome.runtime.getURL("background/context-menu.js")
+  chrome.runtime.getURL("background/context-menu.js"),
+  chrome.runtime.getURL("background/inject.js")
 );
 
 const BL = globalThis.BetterLinks;
@@ -95,4 +97,12 @@ chrome.storage.sync.get(null, (stored) => {
 chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
   if (tabs && tabs[0]) BL.noteActiveTab(tabs[0].id);
   else BL.refreshSelectionMenu();
+});
+
+BL.syncContentScripts();
+chrome.permissions.onAdded.addListener(() => {
+  BL.syncContentScripts();
+});
+chrome.permissions.onRemoved.addListener(() => {
+  BL.syncContentScripts();
 });

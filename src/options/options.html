@@ -10,6 +10,14 @@
     <main>
       <h1 id="title">Better Links</h1>
 
+      <section id="host-access" hidden>
+        <h2 id="label-host-access"></h2>
+        <p id="host-access-help" class="help"></p>
+        <div class="actions">
+          <button id="host-access-grant" type="button"></button>
+        </div>
+      </section>
+
       <nav class="tabs">
         <button id="tab-options" class="tab" type="button" aria-selected="true"></button>
         <button id="tab-correctors" class="tab" type="button" aria-selected="false"></button>
@@ -187,6 +195,7 @@
         <span id="saved" class="saved" hidden></span>
       </div>
     </main>
+    <script src="../shared/hosts.js"></script>
     <script src="../shared/defaults.js"></script>
     <script src="../shared/link.js"></script>
     <script src="../shared/i18n.js"></script>

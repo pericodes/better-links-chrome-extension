@@ -52,6 +52,21 @@
     }
   }
 
+  let hostAccessCheck = 0;
+
+  function refreshHostAccess() {
+    const box = $("host-access");
+    if (!BL.HOST_ORIGINS || !chrome.permissions || !chrome.permissions.contains) {
+      box.hidden = true;
+      return;
+    }
+    const ticket = ++hostAccessCheck;
+    chrome.permissions.contains({ origins: BL.HOST_ORIGINS }, (granted) => {
+      if (ticket !== hostAccessCheck || chrome.runtime.lastError) return;
+      box.hidden = Boolean(granted);
+    });
+  }
+
   function applyLabels() {
     const lang = BL.resolveLanguage(settings.language);
     document.documentElement.lang = lang;
@@ -91,6 +106,10 @@
     $("label-video-click3").textContent = BL.t(lang, "options.click3");
     $("label-video-tooltip-actions").textContent = BL.t(lang, "options.videoTooltipActions");
     $("label-section-general").textContent = BL.t(lang, "options.sectionGeneral");
+    $("label-host-access").textContent = BL.t(lang, "options.hostAccess");
+    $("host-access-help").textContent = BL.t(lang, "options.hostAccessHelp");
+    $("host-access-grant").textContent = BL.t(lang, "options.hostAccessGrant");
+    refreshHostAccess();
     $("label-fix-links").textContent = BL.t(lang, "options.fixLinks");
     $("fix-help").textContent = BL.t(lang, "options.fixLinksHelp");
     $("tab-options").textContent = BL.t(lang, "options.tabOptions");
@@ -592,6 +611,14 @@
       window.setTimeout(() => {
         saved.hidden = true;
       }, 1600);
+    });
+  });
+
+  $("host-access-grant").addEventListener("click", () => {
+    chrome.permissions.request({ origins: BL.HOST_ORIGINS }, (granted) => {
+      if (chrome.runtime.lastError) return;
+      hostAccessCheck += 1;
+      $("host-access").hidden = Boolean(granted);
     });
   });
 

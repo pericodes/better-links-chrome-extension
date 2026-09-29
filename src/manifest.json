@@ -4,8 +4,8 @@
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "version": "1.0.0",
-  "permissions": ["storage", "contextMenus", "downloads"],
-  "host_permissions": ["http://*/*", "https://*/*"],
+  "permissions": ["storage", "contextMenus", "downloads", "scripting"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
   "background": {
     "service_worker": "background/service-worker.js"
   },
@@ -28,32 +28,5 @@
   },
   "sandbox": {
     "pages": ["options/sandbox.html"]
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": [
-        "shared/defaults.js",
-        "shared/link.js",
-        "shared/correctors.js",
-        "shared/video.js",
-        "shared/i18n.js",
-        "shared/actions.js",
-        "content/targets/selection.js",
-        "content/targets/anchor.js",
-        "content/targets/image.js",
-        "content/targets/video.js",
-        "content/targets/resolve.js",
-        "content/actions/link.js",
-        "content/actions/image.js",
-        "content/actions/run.js",
-        "content/tooltip.js",
-        "content/gestures.js",
-        "content/content.js"
-      ],
-      "css": ["content/content.css"],
-      "run_at": "document_idle",
-      "all_frames": true
-    }
-  ]
+  }
 }

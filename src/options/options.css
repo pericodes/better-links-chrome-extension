@@ -189,6 +189,10 @@ input[type="number"] {
   gap: 12px;
 }
 
+#host-access .actions {
+  margin-top: 12px;
+}
+
 #panel-correctors .actions {
   margin-top: 20px;
 }
